@@ -17,11 +17,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/noxtmstudio', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://noxtmstudio:nXALwVOSJEqRG2F2@cluster0.4jneyth.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('Connected to MongoDB'))
+.then(() => console.log('Connected to MongoDB Atlas'))
 .catch(err => console.error('MongoDB connection error:', err));
 
 // API Routes

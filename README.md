@@ -6,7 +6,7 @@ A modern full-stack web application built with React, Node.js, Express, and Mong
 
 - **Frontend**: React 18 + Vite
 - **Backend**: Node.js + Express.js
-- **Database**: MongoDB
+- **Database**: MongoDB Atlas (Cloud)
 - **Server**: Contabo VPS (185.137.122.61)
 - **Process Manager**: PM2
 - **Reverse Proxy**: Nginx
@@ -106,8 +106,8 @@ pm2 status
 # Nginx status
 systemctl status nginx
 
-# MongoDB status
-systemctl status mongod
+# MongoDB Atlas connection status
+# Check PM2 logs for database connection status
 
 # View logs
 pm2 logs noxtmstudio-backend
@@ -127,7 +127,7 @@ pm2 logs noxtmstudio-backend
 - ✅ **Auto-Deployment**: Git-based deployment workflow
 - ✅ **Process Management**: PM2 for reliable backend operation
 - ✅ **Reverse Proxy**: Nginx for efficient request routing
-- ✅ **Database**: MongoDB with connection pooling
+- ✅ **Database**: MongoDB Atlas with cloud connection pooling
 - ✅ **Security**: Helmet.js, CORS, and security best practices
 - ✅ **Monitoring**: Built-in health checks and status endpoints
 
@@ -135,7 +135,7 @@ pm2 logs noxtmstudio-backend
 
 - **Frontend**: React 18, Vite, CSS3
 - **Backend**: Node.js, Express.js, Mongoose
-- **Database**: MongoDB
+- **Database**: MongoDB Atlas (Cloud)
 - **Build Tools**: Vite, npm scripts
 - **Deployment**: PM2, Nginx, Git
 - **Server**: Ubuntu 22.04 LTS on Contabo VPS
@@ -146,9 +146,11 @@ Create a `.env` file in the backend directory:
 
 ```env
 PORT=3000
-MONGODB_URI=mongodb://localhost:27017/noxtmstudio
+MONGODB_URI=mongodb+srv://noxtmstudio:nXALwVOSJEqRG2F2@cluster0.4jneyth.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 NODE_ENV=production
 ```
+
+**Note**: The application is now configured to use MongoDB Atlas cloud database instead of local MongoDB.
 
 ## 🔄 Update Workflow
 
@@ -161,7 +163,7 @@ NODE_ENV=production
 For deployment issues or questions, check:
 - PM2 logs: `pm2 logs noxtmstudio-backend`
 - Nginx logs: `tail -f /var/log/nginx/error.log`
-- MongoDB logs: `tail -f /var/log/mongodb/mongod.log`
+- MongoDB Atlas connection: Check PM2 logs for database status
 
 ---
 

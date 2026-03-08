@@ -318,8 +318,9 @@ html {
     gap: 60px;
     position: relative;
     z-index: 2;
-    background: #17402A;
+    background: #ffffff;
     border-radius: var(--radius-xl);
+    transition: background-image 0.5s ease;
 }
 
 /* --- Left: Text --- */
@@ -409,7 +410,7 @@ html {
 }
 
 .btn-primary:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.6);
     box-shadow: none;
     transform: translateY(-2px);
@@ -431,7 +432,7 @@ html {
 
 .btn-ghost:hover {
     border-color: rgba(255, 255, 255, 0.6);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-large {
@@ -2996,6 +2997,12 @@ html {
     display: inline-block;
     position: relative;
     padding-bottom: 0.6rem;
+}
+
+/* Scroll-reveal word container */
+.scroll-reveal-words {
+    display: block;
+    white-space: normal;
 }
 
 .section-title.saudagar-text::after {

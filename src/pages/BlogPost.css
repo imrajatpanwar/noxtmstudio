@@ -35,7 +35,7 @@
     font-weight: 500;
     color: var(--text-muted, #7A7A7A);
     text-decoration: none;
-    margin-bottom: 32px;
+    margin-bottom: 19px;
     transition: color 0.2s ease;
 }
 
@@ -57,21 +57,21 @@
     color: var(--text-muted, #7A7A7A);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin-bottom: 16px;
+    margin-bottom: 4px;
 }
 
 .blogpost-title {
     font-family: 'Switzer', sans-serif;
-    font-size: 42px;
+    font-size: 34px;
     font-weight: 700;
     line-height: 1.2;
     color: var(--text-primary, #131313);
     letter-spacing: -0.02em;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
 }
 
 .blogpost-subtitle {
-    font-size: 1.15rem;
+    font-size: 0.8rem;
     line-height: 1.6;
     color: var(--text-body, #3D3D3D);
     margin-bottom: 24px;

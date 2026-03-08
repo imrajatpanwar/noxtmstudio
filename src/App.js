@@ -25,6 +25,7 @@ import VisitorStats from './visitor/VisitorStats';
 import VisitorWriteBlog from './visitor/VisitorWriteBlog';
 import VisitorMyBlogs from './visitor/VisitorMyBlogs';
 import WorkManager from './admin/WorkManager';
+import VisitorManager from './admin/VisitorManager';
 import WorkPage from './pages/Work';
 import WorkDetail from './pages/WorkDetail';
 import Contact from './pages/Contact';
@@ -57,6 +58,7 @@ function App() {
             <Route path="settings" element={<WebsiteSettings />} />
             <Route path="subscribers" element={<SubscriberManager />} />
             <Route path="visitor-blogs" element={<VisitorBlogManager />} />
+            <Route path="visitors" element={<VisitorManager />} />
           </Route>
 
           {/* Visitor Routes */}

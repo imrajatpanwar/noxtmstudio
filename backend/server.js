@@ -258,7 +258,7 @@ app.post('/api/visitors/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const visitor = await Visitor.create({ name: name.trim(), email: email.trim().toLowerCase(), password: hashed, bio: bio?.trim() || '' });
     const token = jwt.sign({ role: 'visitor', id: visitor._id, email: visitor.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar, profileImage: visitor.profileImage, verified: visitor.verified } });
+    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar, profileImage: visitor.profileImage, verified: visitor.verified, followers: visitor.followers, following: visitor.following, createdAt: visitor.createdAt } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -270,7 +270,7 @@ app.post('/api/visitors/login', async (req, res) => {
     const valid = await bcrypt.compare(password, visitor.password);
     if (!valid) return res.status(401).json({ error: 'Invalid email or password.' });
     const token = jwt.sign({ role: 'visitor', id: visitor._id, email: visitor.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar, profileImage: visitor.profileImage, verified: visitor.verified, suspended: visitor.suspended } });
+    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar, profileImage: visitor.profileImage, verified: visitor.verified, suspended: visitor.suspended, followers: visitor.followers, following: visitor.following, createdAt: visitor.createdAt } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -750,6 +750,15 @@ app.post('/api/upload/blog-image', visitorAuth, upload.single('file'), (req, res
 
 // ─── Health check ────────────────────────────
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+
+// ─── Serve React build in production ─────────
+const buildPath = path.join(__dirname, '..', 'build');
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+}
 
 // ─── Start Server ────────────────────────────
 const PORT = process.env.PORT || 5000;

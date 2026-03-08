@@ -31,6 +31,7 @@ function AdminLayout() {
     { path: '/admin/work', label: 'Work', icon: '🎨' },
     { path: '/admin/careers', label: 'Careers', icon: '🚀' },
     { path: '/admin/visitor-blogs', label: 'Visitor Blogs', icon: '👥' },
+    { path: '/admin/visitors', label: 'Visitors', icon: '🧑‍💻' },
     { path: '/admin/settings', label: 'Website Settings', icon: '⚙️' },
     { path: '/admin/subscribers', label: 'Subscribers', icon: '📧' },
   ];

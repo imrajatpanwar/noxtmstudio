@@ -15,6 +15,12 @@ import MetaLogo from './image/MetaLogo.svg';
 import GoogleAds from './image/GoogleAds.svg';
 import FootersBg from './image/footers_file.webp';
 
+/* ── Hero day/night images ── */
+import DayWebp from './image/main_images/day_image.webp';
+import NightWebp from './image/main_images/night_image.webp';
+import DayPng from './image/main_images/day_image_noxtm_studio.png';
+import NightPng from './image/main_images/night_image_noxtm_studio.png';
+
 /* ── Circle folder assets (served from public/) ── */
 const ArchOuter = process.env.PUBLIC_URL + '/images/circle/Arch-Outer.svg';
 const ArchMid = process.env.PUBLIC_URL + '/images/circle/Arch-Mid.svg';
@@ -26,6 +32,23 @@ const BadgeViews = process.env.PUBLIC_URL + '/images/circle/Badge-PostViews.svg'
 const BadgeGrowth = process.env.PUBLIC_URL + '/images/circle/Badge-FocusGrowth.svg';
 const Text1M = process.env.PUBLIC_URL + '/images/circle/Text-1M.svg';
 const TextFollowers = process.env.PUBLIC_URL + '/images/circle/Text-Followers.svg';
+
+/* ── useHeroBg: show fast webp first, swap to hi-res PNG when loaded ── */
+function useHeroBg() {
+    const hour = new Date().getHours();
+    const isDay = hour >= 6 && hour < 18;
+    const webp = isDay ? DayWebp : NightWebp;
+    const png = isDay ? DayPng : NightPng;
+    const [bg, setBg] = useState(webp);
+
+    useEffect(() => {
+        const img = new Image();
+        img.src = png;
+        img.onload = () => setBg(png);
+    }, [png]);
+
+    return bg;
+}
 
 /* ── Data ────────────────────────────────────────────────────── */
 
@@ -966,6 +989,9 @@ function setLinkTag(rel, href) {
 }
 
 export default function Home() {
+    /* Hero background: day/night with progressive loading */
+    const heroBg = useHeroBg();
+
     /* Service toggle state */
     const [activeService, setActiveService] = useState(0);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1106,7 +1132,7 @@ export default function Home() {
                 <div className="glass-strip"></div>
                 <div className="glass-strip-2"></div>
 
-                <div className="hero-rect-inner">
+                <div className="hero-rect-inner" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
                     {/* Left: Text */}
                     <div className="hero-rect-left">
                         {/* Decorative flourish ornament from ddsign!.svg */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import api from '../api';
 import './Visitor.css';
 
 function VisitorLayout() {
@@ -17,6 +18,21 @@ function VisitorLayout() {
     if (stored) {
       setUser(JSON.parse(stored));
     }
+    // Fetch fresh profile data so profile image is always up-to-date
+    const fetchProfile = async () => {
+      try {
+        const u = await api.visitorProfile();
+        const normalized = { ...u, id: u._id || u.id };
+        setUser(normalized);
+        localStorage.setItem('noxtm_visitor_user', JSON.stringify(normalized));
+      } catch {
+        // Token expired or invalid — redirect to login
+        localStorage.removeItem('noxtm_visitor_token');
+        localStorage.removeItem('noxtm_visitor_user');
+        navigate('/visitor/login');
+      }
+    };
+    fetchProfile();
   }, [navigate]);
 
   const handleLogout = () => {

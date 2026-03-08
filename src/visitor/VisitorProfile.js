@@ -11,6 +11,8 @@ function VisitorProfile() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('noxtm_visitor_token');
+    if (!token) return;
     const fetchProfile = async () => {
       try {
         const u = await api.visitorProfile();

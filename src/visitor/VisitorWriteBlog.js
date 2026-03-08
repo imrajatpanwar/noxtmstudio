@@ -198,6 +198,8 @@ function VisitorWriteBlog() {
     const [title, setTitle] = useState('');
     const [blocks, setBlocks] = useState([{ type: 'text', content: '' }]);
     const [featureImage, setFeatureImage] = useState('');
+    const [featureUploading, setFeatureUploading] = useState(false);
+    const featureFileRef = useRef(null);
     const [excerpt, setExcerpt] = useState('');
     const [selectedTopics, setSelectedTopics] = useState([]);
     const [readTime, setReadTime] = useState('1 min read');
@@ -243,6 +245,22 @@ function VisitorWriteBlog() {
         const minutes = Math.max(1, Math.ceil(words / 200));
         setReadTime(`${minutes} min read`);
     }, [blocks]);
+
+    const handleFeatureImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { alert('File size must be under 5MB'); return; }
+        setFeatureUploading(true);
+        try {
+            const result = await api.uploadBlogImage(file);
+            setFeatureImage(result.url);
+        } catch (err) {
+            alert(err.message || 'Upload failed');
+        } finally {
+            setFeatureUploading(false);
+            if (featureFileRef.current) featureFileRef.current.value = '';
+        }
+    };
 
     const toggleTopic = (topic) => {
         setSelectedTopics(prev => {
@@ -323,21 +341,30 @@ function VisitorWriteBlog() {
                     </div>
                 </div>
 
-                {/* Feature Image URL */}
+                {/* Feature Image Upload */}
                 <div className="visitor-write-field">
-                    <label className="visitor-write-label">Feature Image URL</label>
-                    <input
-                        type="text"
-                        className="visitor-write-input"
-                        placeholder="https://example.com/image.jpg"
-                        value={featureImage}
-                        onChange={e => setFeatureImage(e.target.value)}
-                    />
-                    {featureImage && (
-                        <div className="visitor-write-feature-preview">
-                            <img src={featureImage} alt="Feature preview" onError={(e) => { e.target.style.display = 'none'; }} />
-                        </div>
-                    )}
+                    <label className="visitor-write-label">Feature Image</label>
+                    <div className="feature-upload-area">
+                        {featureImage ? (
+                            <div className="visitor-write-feature-preview">
+                                <img src={featureImage} alt="Feature preview" />
+                                <button type="button" className="feature-remove-btn" onClick={() => setFeatureImage('')}>✕ Remove</button>
+                            </div>
+                        ) : (
+                            <div className="feature-upload-placeholder" onClick={() => featureFileRef.current?.click()}>
+                                <span className="feature-upload-icon">🖼️</span>
+                                <span>{featureUploading ? 'Uploading...' : 'Click to upload feature image'}</span>
+                                <span className="feature-upload-hint">JPEG, PNG, GIF, WebP · Max 5MB</span>
+                            </div>
+                        )}
+                        <input
+                            ref={featureFileRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            style={{ display: 'none' }}
+                            onChange={handleFeatureImageUpload}
+                        />
+                    </div>
                 </div>
 
                 {/* Excerpt */}

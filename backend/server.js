@@ -4,12 +4,39 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
+
+// ─── Ensure uploads directory ───
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+// ─── Multer config ───
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const name = Date.now() + '-' + Math.round(Math.random() * 1e6) + ext;
+    cb(null, name);
+  },
+});
+const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (allowedTypes.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only image files (JPEG, PNG, GIF, WebP, SVG) are allowed'));
+  },
+});
 
 // ─── Middleware ───
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use('/uploads', express.static(uploadsDir));
 
 // ─── MongoDB Connection ───
 mongoose.connect(process.env.MONGODB_URI)
@@ -637,7 +664,25 @@ app.get('/api/visitor-stats', visitorAuth, async (req, res) => {
 app.get('/api/admin/visitors', adminAuth, async (req, res) => {
   try {
     const visitors = await Visitor.find().select('-password').sort({ createdAt: -1 });
-    res.json(visitors);
+    // Enrich with blog stats
+    const visitorIds = visitors.map(v => v._id);
+    const blogs = await VisitorBlog.find({ visitorId: { $in: visitorIds } });
+    const statsMap = {};
+    blogs.forEach(b => {
+      const vid = b.visitorId.toString();
+      if (!statsMap[vid]) statsMap[vid] = { totalBlogs: 0, publishedBlogs: 0, pendingBlogs: 0, totalViews: 0, totalClaps: 0 };
+      statsMap[vid].totalBlogs++;
+      if (b.status === 'approved') statsMap[vid].publishedBlogs++;
+      if (b.status === 'pending') statsMap[vid].pendingBlogs++;
+      statsMap[vid].totalViews += b.views || 0;
+      statsMap[vid].totalClaps += b.claps || 0;
+    });
+    const enriched = visitors.map(v => {
+      const obj = v.toObject();
+      obj.stats = statsMap[v._id.toString()] || { totalBlogs: 0, publishedBlogs: 0, pendingBlogs: 0, totalViews: 0, totalClaps: 0 };
+      return obj;
+    });
+    res.json(enriched);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -661,6 +706,30 @@ app.put('/api/visitor-blogs/:id/view', async (req, res) => {
     );
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
     res.json({ views: blog.views });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ══════════════════════════════════════════════
+// ─── FILE UPLOAD ROUTES ──────────────────────
+// ══════════════════════════════════════════════
+
+// Upload profile picture (visitor auth required)
+app.post('/api/upload/profile', visitorAuth, upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const imageUrl = `/uploads/${req.file.filename}`;
+    // Update visitor's profileImage
+    await Visitor.findByIdAndUpdate(req.visitor.id, { profileImage: imageUrl });
+    res.json({ url: imageUrl });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Upload blog feature image (visitor auth required)
+app.post('/api/upload/blog-image', visitorAuth, upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.json({ url: imageUrl });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

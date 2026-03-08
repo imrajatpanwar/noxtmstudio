@@ -81,56 +81,76 @@ function VisitorBlogManager() {
             {/* Visitors Panel */}
             {showVisitors && (
                 <div style={{ marginBottom: '24px', padding: '20px', background: 'var(--card-bg, #fff)', borderRadius: '12px', border: '1px solid var(--border, #E0E0E0)' }}>
-                    <h2 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Registered Visitors</h2>
+                    <h2 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Registered Visitors ({visitors.length})</h2>
                     {visitors.length === 0 ? (
                         <p style={{ color: 'var(--text-muted, #7A7A7A)' }}>No visitors registered yet.</p>
                     ) : (
-                        <div className="admin-table-wrapper">
-                            <table className="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Verified</th>
-                                        <th>Joined</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {visitors.map(v => (
-                                        <tr key={v._id}>
-                                            <td>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    {v.profileImage ? (
-                                                        <img src={v.profileImage} alt={v.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
-                                                    ) : (
-                                                        <span>{v.avatar || '👤'}</span>
-                                                    )}
-                                                    <span>{v.name}</span>
-                                                    {v.verified && <span style={{ color: '#2563EB', fontWeight: 700, fontSize: '0.85rem' }}>✓</span>}
-                                                </div>
-                                            </td>
-                                            <td>{v.email}</td>
-                                            <td>
-                                                <span className="admin-badge" style={{ background: v.verified ? '#DCFCE7' : '#FEE2E2', color: v.verified ? '#166534' : '#991B1B' }}>
-                                                    {v.verified ? 'Verified' : 'Unverified'}
-                                                </span>
-                                            </td>
-                                            <td style={{ whiteSpace: 'nowrap' }}>
-                                                {new Date(v.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </td>
-                                            <td>
-                                                <button
-                                                    className={`admin-btn admin-btn-sm ${v.verified ? 'admin-btn-danger' : 'admin-btn-accent'}`}
-                                                    onClick={() => handleVerifyToggle(v._id)}
-                                                >
-                                                    {v.verified ? 'Remove Badge' : '✓ Verify'}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div style={{ display: 'grid', gap: '12px' }}>
+                            {visitors.map(v => (
+                                <div key={v._id} style={{
+                                    display: 'flex', alignItems: 'center', gap: '16px', padding: '16px',
+                                    background: 'var(--bg-secondary, #F9F7F4)', borderRadius: '10px',
+                                    border: '1px solid var(--border, #E0E0E0)', flexWrap: 'wrap'
+                                }}>
+                                    {/* Avatar */}
+                                    <div style={{ flexShrink: 0 }}>
+                                        {v.profileImage ? (
+                                            <img src={v.profileImage} alt={v.name} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#E8E8E8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{v.avatar || '👤'}</div>
+                                        )}
+                                    </div>
+
+                                    {/* Info */}
+                                    <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                                            <strong style={{ fontSize: '0.95rem' }}>{v.name}</strong>
+                                            {v.verified && <span style={{ color: '#2563EB', fontWeight: 700, fontSize: '0.85rem' }}>✓</span>}
+                                            <span className="admin-badge" style={{ background: v.verified ? '#DCFCE7' : '#FEE2E2', color: v.verified ? '#166534' : '#991B1B', fontSize: '0.7rem', padding: '2px 8px' }}>
+                                                {v.verified ? 'Verified' : 'Unverified'}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted, #7A7A7A)' }}>
+                                            {v.email} · Joined {new Date(v.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </div>
+                                        {v.bio && <div style={{ fontSize: '0.82rem', color: 'var(--text-muted, #999)', marginTop: '4px' }}>{v.bio}</div>}
+                                    </div>
+
+                                    {/* Stats */}
+                                    <div style={{ display: 'flex', gap: '16px', flexShrink: 0, flexWrap: 'wrap' }}>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700 }}>{v.stats?.totalBlogs || 0}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #7A7A7A)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Blogs</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#166534' }}>{v.stats?.publishedBlogs || 0}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #7A7A7A)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Published</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#92400E' }}>{v.stats?.pendingBlogs || 0}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #7A7A7A)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700 }}>{(v.stats?.totalViews || 0).toLocaleString()}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #7A7A7A)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Views</div>
+                                        </div>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700 }}>{(v.stats?.totalClaps || 0).toLocaleString()}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #7A7A7A)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Claps</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action */}
+                                    <div style={{ flexShrink: 0 }}>
+                                        <button
+                                            className={`admin-btn admin-btn-sm ${v.verified ? 'admin-btn-danger' : 'admin-btn-accent'}`}
+                                            onClick={() => handleVerifyToggle(v._id)}
+                                        >
+                                            {v.verified ? 'Remove Badge' : '✓ Verify'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>

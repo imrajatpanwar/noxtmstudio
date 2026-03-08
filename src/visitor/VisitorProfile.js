@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import './Visitor.css';
 
 function VisitorProfile() {
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: '', bio: '', avatar: '', profileImage: '' });
+  const [form, setForm] = useState({ name: '', bio: '', avatar: '' });
   const [success, setSuccess] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const u = await api.visitorProfile();
         setUser(u);
-        setForm({ name: u.name, bio: u.bio || '', avatar: u.avatar || '👤', profileImage: u.profileImage || '' });
+        setForm({ name: u.name, bio: u.bio || '', avatar: u.avatar || '👤' });
         localStorage.setItem('noxtm_visitor_user', JSON.stringify(u));
       } catch (err) {
         console.error('Failed to load profile:', err);
@@ -30,7 +32,6 @@ function VisitorProfile() {
         name: form.name.trim(),
         bio: form.bio.trim(),
         avatar: form.avatar || '👤',
-        profileImage: form.profileImage.trim(),
       });
       localStorage.setItem('noxtm_visitor_user', JSON.stringify(updatedUser));
       setUser(updatedUser);
@@ -39,6 +40,29 @@ function VisitorProfile() {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       alert(err.message || 'Failed to update profile.');
+    }
+  };
+
+  const handleProfileImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be under 5MB');
+      return;
+    }
+    setUploading(true);
+    try {
+      const result = await api.uploadProfileImage(file);
+      const updatedUser = { ...user, profileImage: result.url };
+      setUser(updatedUser);
+      localStorage.setItem('noxtm_visitor_user', JSON.stringify(updatedUser));
+      setSuccess('Profile picture updated!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      alert(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -68,11 +92,29 @@ function VisitorProfile() {
         <>
           {/* Profile Header */}
           <div className="visitor-profile-header">
-            {user.profileImage ? (
-              <img src={user.profileImage} alt={user.name} className="visitor-profile-avatar-img" />
-            ) : (
-              <div className="visitor-profile-avatar">{user.avatar}</div>
-            )}
+            <div className="profile-avatar-upload-wrapper">
+              {user.profileImage ? (
+                <img src={user.profileImage} alt={user.name} className="visitor-profile-avatar-img" />
+              ) : (
+                <div className="visitor-profile-avatar">{user.avatar}</div>
+              )}
+              <button
+                type="button"
+                className="profile-avatar-upload-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                title="Upload profile picture"
+              >
+                {uploading ? '...' : '📷'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                style={{ display: 'none' }}
+                onChange={handleProfileImageUpload}
+              />
+            </div>
             <div className="visitor-profile-info">
               <h1>
                 {user.name}
@@ -101,25 +143,8 @@ function VisitorProfile() {
         <div className="visitor-card">
           <h2>Edit Profile</h2>
           <div className="profile-edit-form">
-            {/* Profile Image URL */}
-            <div className="form-group">
-              <label>Profile Picture URL</label>
-              <input
-                type="text"
-                value={form.profileImage}
-                onChange={(e) => setForm({ ...form, profileImage: e.target.value })}
-                placeholder="https://example.com/your-photo.jpg"
-              />
-              {form.profileImage && (
-                <div className="profile-image-preview">
-                  <img src={form.profileImage} alt="Preview" onError={(e) => { e.target.style.display = 'none'; }} />
-                </div>
-              )}
-              <p className="form-hint">Paste a URL to your profile picture. Leave empty to use an avatar emoji instead.</p>
-            </div>
-
-            {/* Avatar Emoji (fallback) */}
-            {!form.profileImage && (
+            {/* Avatar Emoji (only when no profile image) */}
+            {!user.profileImage && (
               <div className="form-group">
                 <label>Avatar Emoji</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>

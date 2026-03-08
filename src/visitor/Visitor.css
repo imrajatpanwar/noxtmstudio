@@ -1538,6 +1538,102 @@
     margin-top: 4px;
 }
 
+/* Profile avatar upload wrapper */
+.profile-avatar-upload-wrapper {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.profile-avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--card-bg, #fff);
+    border: 2px solid var(--border-color, #E0E0E0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    padding: 0;
+}
+
+.profile-avatar-upload-btn:hover {
+    border-color: var(--accent, #131313);
+    background: #F5F5F5;
+}
+
+/* Feature image upload area */
+.feature-upload-area {
+    width: 100%;
+}
+
+.feature-upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 20px;
+    border: 2px dashed var(--border-color, #E0E0E0);
+    border-radius: 10px;
+    background: #FAFAFA;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-secondary, #6B6B6B);
+    font-size: 14px;
+}
+
+.feature-upload-placeholder:hover {
+    border-color: var(--accent, #131313);
+    background: #F5F5F5;
+}
+
+.feature-upload-icon {
+    font-size: 32px;
+}
+
+.feature-upload-hint {
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.feature-remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.feature-remove-btn:hover {
+    background: rgba(0,0,0,0.8);
+}
+
+.visitor-write-feature-preview {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.visitor-write-feature-preview img {
+    width: 100%;
+    max-height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
 /* ══════════════════════════════════════════════ */
 /* ─── WRITE BLOG PAGE ─────────────────────────── */
 /* ══════════════════════════════════════════════ */
@@ -1926,20 +2022,6 @@
     font-size: 0.75rem;
     color: #999;
     padding: 6px 0;
-}
-
-/* Feature image preview */
-.visitor-write-feature-preview {
-    margin-top: 8px;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.visitor-write-feature-preview img {
-    width: 100%;
-    max-height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
 }
 
 /* Dashboard views counter */

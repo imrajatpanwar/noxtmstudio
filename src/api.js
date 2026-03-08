@@ -94,6 +94,35 @@ const api = {
 
   // View Tracking
   incrementBlogView: (id) => request(`/visitor-blogs/${id}/view`, { method: 'PUT' }),
+
+  // File Uploads
+  uploadProfileImage: async (file) => {
+    const token = localStorage.getItem('noxtm_visitor_token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/upload/profile`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    return data;
+  },
+
+  uploadBlogImage: async (file) => {
+    const token = localStorage.getItem('noxtm_visitor_token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/upload/blog-image`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    return data;
+  },
 };
 
 export default api;

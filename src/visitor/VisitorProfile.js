@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../api';
 import './Visitor.css';
 
 function VisitorProfile() {
@@ -8,55 +9,44 @@ function VisitorProfile() {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    const stored = localStorage.getItem('noxtm_visitor_user');
-    if (stored) {
-      const u = JSON.parse(stored);
-      setUser(u);
-      setForm({ name: u.name, bio: u.bio || '', avatar: u.avatar || '👤' });
-    }
+    const fetchProfile = async () => {
+      try {
+        const u = await api.visitorProfile();
+        setUser(u);
+        setForm({ name: u.name, bio: u.bio || '', avatar: u.avatar || '👤' });
+        localStorage.setItem('noxtm_visitor_user', JSON.stringify(u));
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      }
+    };
+    fetchProfile();
   }, []);
 
-  const getFullUser = () => {
-    const visitors = JSON.parse(localStorage.getItem('noxtm_visitors') || '[]');
-    return visitors.find((v) => v.id === user?.id);
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim()) return;
 
-    const visitors = JSON.parse(localStorage.getItem('noxtm_visitors') || '[]');
-    const idx = visitors.findIndex((v) => v.id === user.id);
-    if (idx === -1) return;
-
-    visitors[idx] = {
-      ...visitors[idx],
-      name: form.name.trim(),
-      bio: form.bio.trim(),
-      avatar: form.avatar || '👤',
-    };
-    localStorage.setItem('noxtm_visitors', JSON.stringify(visitors));
-
-    const updatedUser = {
-      id: user.id,
-      name: form.name.trim(),
-      email: user.email,
-      bio: form.bio.trim(),
-      avatar: form.avatar || '👤',
-    };
-    localStorage.setItem('noxtm_visitor_user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
-    setEditing(false);
-    setSuccess('Profile updated successfully.');
-    setTimeout(() => setSuccess(''), 3000);
+    try {
+      const updatedUser = await api.updateVisitorProfile({
+        name: form.name.trim(),
+        bio: form.bio.trim(),
+        avatar: form.avatar || '👤',
+      });
+      localStorage.setItem('noxtm_visitor_user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setEditing(false);
+      setSuccess('Profile updated successfully.');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      alert(err.message || 'Failed to update profile.');
+    }
   };
 
   if (!user) return null;
 
-  const fullUser = getFullUser();
-  const followersCount = fullUser?.followers?.length || 0;
-  const followingCount = fullUser?.following?.length || 0;
-  const memberSince = fullUser?.createdAt
-    ? new Date(fullUser.createdAt).toLocaleDateString('en-US', {
+  const followersCount = user?.followers?.length || 0;
+  const followingCount = user?.following?.length || 0;
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
       })

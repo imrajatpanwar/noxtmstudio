@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-
-const STORAGE_KEY = 'noxtm_works';
+import api from '../api';
 
 function generateSlug(title) {
     return title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
 }
 
-function generateId() {
-    return 'work_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-}
-
 const emptyWork = {
-    id: '', title: '', subtitle: '', slug: '', description: '', featureImage: '',
+    title: '', subtitle: '', slug: '', description: '', featureImage: '',
     category: '', clientName: '', projectUrl: '', gradientStart: '#6366F1', gradientEnd: '#E8722A',
     tags: '', status: 'Draft', publishDate: new Date().toISOString().split('T')[0],
     createdAt: '', updatedAt: '',
@@ -29,8 +24,13 @@ function WorkManager() {
     const [toast, setToast] = useState(null);
 
     useEffect(() => {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        setWorks(saved);
+        const loadWorks = async () => {
+            try {
+                const data = await api.getWorks();
+                setWorks(data);
+            } catch (err) { /* ignore */ }
+        };
+        loadWorks();
     }, []);
 
     useEffect(() => {
@@ -40,9 +40,11 @@ function WorkManager() {
         }
     }, [location.state]);
 
-    const saveWorks = (updated) => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-        setWorks(updated);
+    const reloadWorks = async () => {
+        try {
+            const data = await api.getWorks();
+            setWorks(data);
+        } catch (err) { /* ignore */ }
     };
 
     const showToast = (message, type = 'success') => {
@@ -51,35 +53,42 @@ function WorkManager() {
     };
 
     const handleNew = () => {
-        setCurrent({ ...emptyWork, id: generateId(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        setCurrent({ ...emptyWork, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
         setView('editor');
     };
 
     const handleEdit = (work) => { setCurrent({ ...work }); setView('editor'); };
     const handleDelete = (work) => { setDeleteTarget(work); };
 
-    const confirmDelete = () => {
-        const updated = works.filter(w => w.id !== deleteTarget.id);
-        saveWorks(updated);
-        setDeleteTarget(null);
-        showToast('Work item deleted successfully.');
+    const confirmDelete = async () => {
+        try {
+            await api.deleteWork(deleteTarget._id);
+            await reloadWorks();
+            setDeleteTarget(null);
+            showToast('Work item deleted successfully.');
+        } catch (err) {
+            showToast('Failed to delete work item.', 'error');
+        }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!current.title.trim()) { showToast('Title is required.', 'error'); return; }
         const now = new Date().toISOString();
         const toSave = { ...current, slug: current.slug || generateSlug(current.title), updatedAt: now };
-        const exists = works.find(w => w.id === toSave.id);
-        let updated;
-        if (exists) {
-            updated = works.map(w => (w.id === toSave.id ? toSave : w));
-        } else {
-            toSave.createdAt = now;
-            updated = [toSave, ...works];
+        try {
+            if (toSave._id) {
+                await api.updateWork(toSave._id, toSave);
+                showToast('Work updated successfully.');
+            } else {
+                toSave.createdAt = now;
+                await api.createWork(toSave);
+                showToast('Work created successfully.');
+            }
+            await reloadWorks();
+            setView('list');
+        } catch (err) {
+            showToast('Failed to save work.', 'error');
         }
-        saveWorks(updated);
-        setView('list');
-        showToast(exists ? 'Work updated successfully.' : 'Work created successfully.');
     };
 
     const handleCancel = () => { setView('list'); setCurrent({ ...emptyWork }); };
@@ -106,7 +115,7 @@ function WorkManager() {
                 {toast && <div className={`admin-toast ${toast.type}`}><span className="admin-toast-icon">{toast.type === 'success' ? '✓' : '✕'}</span>{toast.message}</div>}
                 <div className="admin-editor">
                     <div className="admin-editor-header">
-                        <h2>{works.find(w => w.id === current.id) ? 'Edit Work' : 'New Work'}</h2>
+                        <h2>{works.find(w => w._id === current._id) ? 'Edit Work' : 'New Work'}</h2>
                         <button className="admin-btn admin-btn-outline admin-btn-sm" onClick={handleCancel}>← Back to List</button>
                     </div>
                     <div className="admin-form-grid">
@@ -167,7 +176,7 @@ function WorkManager() {
                         </div>
                     </div>
                     <div className="admin-form-actions">
-                        <button className="admin-btn admin-btn-saffron" onClick={handleSave}>{works.find(w => w.id === current.id) ? 'Update Work' : 'Save Work'}</button>
+                        <button className="admin-btn admin-btn-saffron" onClick={handleSave}>{works.find(w => w._id === current._id) ? 'Update Work' : 'Save Work'}</button>
                         <button className="admin-btn admin-btn-outline" onClick={handleCancel}>Cancel</button>
                     </div>
                 </div>
@@ -212,7 +221,7 @@ function WorkManager() {
                         {filtered.length === 0 ? (
                             <tr><td colSpan="6"><div className="admin-table-empty"><div style={{fontSize:'32px',marginBottom:'8px'}}>🎨</div><strong>No work items found</strong><p>Create your first work item to showcase your portfolio.</p></div></td></tr>
                         ) : filtered.map(work => (
-                            <tr key={work.id}>
+                            <tr key={work._id}>
                                 <td className="admin-table-title">{work.title}</td>
                                 <td>{work.clientName || '—'}</td>
                                 <td>{work.category || '—'}</td>

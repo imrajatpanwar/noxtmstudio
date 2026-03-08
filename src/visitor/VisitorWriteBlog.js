@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api';
 import './Visitor.css';
 
 const RECOMMENDED_TOPICS = [
@@ -50,37 +51,28 @@ function VisitorWriteBlog() {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!title.trim() || !content.trim()) return;
         if (!visitor) return;
 
-        const blog = {
-            id: Date.now(),
-            visitorId: visitor.id,
-            visitorName: visitor.name,
-            visitorAvatar: visitor.avatar || '👤',
-            title: title.trim(),
-            content: content.trim(),
-            excerpt: excerpt.trim() || content.trim().substring(0, 160) + '...',
-            featureImage: featureImage.trim(),
-            topics: selectedTopics,
-            readTime,
-            status: 'pending',
-            claps: 0,
-            comments: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
+        try {
+            await api.createVisitorBlog({
+                title: title.trim(),
+                content: content.trim(),
+                excerpt: excerpt.trim() || content.trim().substring(0, 160) + '...',
+                featureImage: featureImage.trim(),
+                topics: selectedTopics,
+                readTime,
+            });
 
-        const existing = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-        existing.push(blog);
-        localStorage.setItem('noxtm_visitor_blogs', JSON.stringify(existing));
-
-        setSuccess(true);
-        setTimeout(() => {
-            navigate('/visitor/my-blogs');
-        }, 2000);
+            setSuccess(true);
+            setTimeout(() => {
+                navigate('/visitor/my-blogs');
+            }, 2000);
+        } catch (err) {
+            alert(err.message || 'Failed to submit blog.');
+        }
     };
 
     if (success) {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-
-const STORAGE_KEY = 'noxtm_case_studies';
+import api from '../api';
 
 function generateSlug(title) {
   return title
@@ -12,12 +11,7 @@ function generateSlug(title) {
     .trim();
 }
 
-function generateId() {
-  return 'case_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-}
-
 const emptyStudy = {
-  id: '',
   title: '',
   subtitle: '',
   slug: '',
@@ -54,8 +48,13 @@ function CaseStudyManager() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    setStudies(saved);
+    const loadStudies = async () => {
+      try {
+        const data = await api.getCaseStudies();
+        setStudies(data);
+      } catch (err) { /* ignore */ }
+    };
+    loadStudies();
   }, []);
 
   useEffect(() => {
@@ -65,9 +64,11 @@ function CaseStudyManager() {
     }
   }, [location.state]);
 
-  const saveStudies = (updated) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setStudies(updated);
+  const reloadStudies = async () => {
+    try {
+      const data = await api.getCaseStudies();
+      setStudies(data);
+    } catch (err) { /* ignore */ }
   };
 
   const showToast = (message, type = 'success') => {
@@ -78,7 +79,6 @@ function CaseStudyManager() {
   const handleNew = () => {
     setCurrent({
       ...emptyStudy,
-      id: generateId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -94,14 +94,18 @@ function CaseStudyManager() {
     setDeleteTarget(study);
   };
 
-  const confirmDelete = () => {
-    const updated = studies.filter((s) => s.id !== deleteTarget.id);
-    saveStudies(updated);
-    setDeleteTarget(null);
-    showToast('Case study deleted successfully.');
+  const confirmDelete = async () => {
+    try {
+      await api.deleteCaseStudy(deleteTarget._id);
+      await reloadStudies();
+      setDeleteTarget(null);
+      showToast('Case study deleted successfully.');
+    } catch (err) {
+      showToast('Failed to delete case study.', 'error');
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!current.title.trim()) {
       showToast('Title is required.', 'error');
       return;
@@ -114,18 +118,20 @@ function CaseStudyManager() {
       updatedAt: now,
     };
 
-    const exists = studies.find((s) => s.id === toSave.id);
-    let updated;
-    if (exists) {
-      updated = studies.map((s) => (s.id === toSave.id ? toSave : s));
-    } else {
-      toSave.createdAt = now;
-      updated = [toSave, ...studies];
+    try {
+      if (toSave._id) {
+        await api.updateCaseStudy(toSave._id, toSave);
+        showToast('Case study updated successfully.');
+      } else {
+        toSave.createdAt = now;
+        await api.createCaseStudy(toSave);
+        showToast('Case study created successfully.');
+      }
+      await reloadStudies();
+      setView('list');
+    } catch (err) {
+      showToast('Failed to save case study.', 'error');
     }
-
-    saveStudies(updated);
-    setView('list');
-    showToast(exists ? 'Case study updated successfully.' : 'Case study created successfully.');
   };
 
   const handleCancel = () => {
@@ -168,7 +174,7 @@ function CaseStudyManager() {
 
         <div className="admin-editor">
           <div className="admin-editor-header">
-            <h2>{studies.find((s) => s.id === current.id) ? 'Edit Case Study' : 'New Case Study'}</h2>
+            <h2>{studies.find((s) => s._id === current._id) ? 'Edit Case Study' : 'New Case Study'}</h2>
             <button className="admin-btn admin-btn-outline admin-btn-sm" onClick={handleCancel}>
               ← Back to List
             </button>
@@ -408,7 +414,7 @@ function CaseStudyManager() {
 
           <div className="admin-form-actions">
             <button className="admin-btn admin-btn-saffron" onClick={handleSave}>
-              {studies.find((s) => s.id === current.id) ? 'Update Case Study' : 'Save Case Study'}
+              {studies.find((s) => s._id === current._id) ? 'Update Case Study' : 'Save Case Study'}
             </button>
             <button className="admin-btn admin-btn-outline" onClick={handleCancel}>
               Cancel
@@ -505,7 +511,7 @@ function CaseStudyManager() {
               </tr>
             ) : (
               filtered.map((study) => (
-                <tr key={study.id}>
+                <tr key={study._id}>
                   <td className="admin-table-title">{study.title}</td>
                   <td>{study.clientName || '—'}</td>
                   <td>{study.category || '—'}</td>

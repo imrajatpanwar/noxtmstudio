@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
-const STORAGE_KEY = 'noxtm_website_settings';
+import api from '../api';
 
 const defaultSettings = {
   /* General */
@@ -65,10 +64,13 @@ function WebsiteSettings() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if (saved) {
-      setSettings({ ...defaultSettings, ...saved });
-    }
+    const loadSettings = async () => {
+      try {
+        const saved = await api.getSettings();
+        if (saved) setSettings({ ...defaultSettings, ...saved });
+      } catch (err) { /* ignore */ }
+    };
+    loadSettings();
   }, []);
 
   const showToast = (message, type = 'success') => {
@@ -80,9 +82,13 @@ function WebsiteSettings() {
     setSettings((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    showToast('Website settings saved successfully!');
+  const handleSave = async () => {
+    try {
+      await api.updateSettings(settings);
+      showToast('Website settings saved successfully!');
+    } catch (err) {
+      showToast('Failed to save settings.', 'error');
+    }
   };
 
   const handleReset = () => {

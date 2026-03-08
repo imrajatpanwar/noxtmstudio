@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../api';
 import './Visitor.css';
 
 function VisitorStats() {
@@ -6,29 +7,30 @@ function VisitorStats() {
   const [blogs, setBlogs] = useState([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem('noxtm_visitor_user');
-    if (!stored) return;
-    const user = JSON.parse(stored);
+    const fetchStats = async () => {
+      try {
+        const data = await api.getVisitorStats();
+        const myBlogs = (data.blogs || []).map((b) => ({
+          id: b._id,
+          title: b.title || 'Untitled',
+          status: b.status || 'pending',
+          views: b.views || 0,
+          claps: b.claps || 0,
+          comments: b.comments?.length || 0,
+          date: b.createdAt,
+        }));
 
-    const allBlogs = JSON.parse(localStorage.getItem('noxtm_blogs') || '[]');
-    const myBlogs = allBlogs
-      .filter((b) => b.authorId === user.id)
-      .map((b) => ({
-        id: b.id,
-        title: b.title || 'Untitled',
-        status: b.status || 'pending',
-        views: b.views || Math.floor(Math.random() * 500),
-        claps: b.claps || Math.floor(Math.random() * 50),
-        comments: b.comments?.length || Math.floor(Math.random() * 10),
-        date: b.createdAt,
-      }));
+        const totalViews = myBlogs.reduce((sum, b) => sum + b.views, 0);
+        const totalClaps = myBlogs.reduce((sum, b) => sum + b.claps, 0);
+        const totalComments = myBlogs.reduce((sum, b) => sum + b.comments, 0);
 
-    const totalViews = myBlogs.reduce((sum, b) => sum + b.views, 0);
-    const totalClaps = myBlogs.reduce((sum, b) => sum + b.claps, 0);
-    const totalComments = myBlogs.reduce((sum, b) => sum + b.comments, 0);
-
-    setStats({ views: totalViews, claps: totalClaps, comments: totalComments });
-    setBlogs(myBlogs);
+        setStats({ views: totalViews, claps: totalClaps, comments: totalComments });
+        setBlogs(myBlogs);
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+    };
+    fetchStats();
   }, []);
 
   return (

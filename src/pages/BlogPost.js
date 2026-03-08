@@ -1,152 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, NavLink } from 'react-router-dom';
 import Footer from '../components/Footer';
+import api from '../api';
 import './BlogPost.css';
 import './Blog.css';
-
-/* ── Sample Blog Data (same as Blog.js) ── */
-const BLOG_POSTS = [
-    {
-        id: 1,
-        author: 'Arjun Mehta',
-        authorAvatar: '🧡',
-        publication: 'Noxtm Insights',
-        title: 'Why Indian Brands Need Culturally-Rooted Social Media Strategies',
-        description: 'The brands that win on social media in India aren\'t just translating global content — they\'re building narratives rooted in regional culture, festivals, and everyday traditions that resonate deeply.',
-        thumbnailColor: '#E8722A',
-        date: 'Feb 25, 2026',
-        readTime: '8 min read',
-        claps: 342,
-        comments: 18,
-        featured: true,
-    },
-    {
-        id: 2,
-        author: 'Sneha Kapoor',
-        authorAvatar: '💜',
-        publication: 'Design at Noxtm',
-        title: 'The Art of Scroll-Stopping Creatives: A Design Framework',
-        description: 'After designing 5,000+ social media creatives, we distilled our process into a repeatable framework that consistently delivers 3× higher engagement than industry benchmarks.',
-        thumbnailColor: '#6366F1',
-        date: 'Feb 20, 2026',
-        readTime: '12 min read',
-        claps: 891,
-        comments: 45,
-        featured: true,
-    },
-    {
-        id: 3,
-        author: 'Rohan Desai',
-        authorAvatar: '🟢',
-        publication: 'Growth Lab',
-        title: 'Performance Marketing in 2026: The Complete Strategy Guide for Indian Markets',
-        description: 'From audience micro-segmentation to creative fatigue management, here\'s everything you need to know about running profitable Meta and Google ad campaigns in India this year.',
-        thumbnailColor: '#10B981',
-        date: 'Feb 15, 2026',
-        readTime: '15 min read',
-        claps: 1204,
-        comments: 67,
-        featured: true,
-    },
-    {
-        id: 4,
-        author: 'Priya Sharma',
-        authorAvatar: '🔶',
-        publication: 'Noxtm Insights',
-        title: 'How We Scaled a D2C Brand to 1M Followers in 6 Months',
-        description: 'A detailed case study on how we combined organic content strategy with targeted paid campaigns to build a massive, engaged following for an ethnic wear brand starting from scratch.',
-        thumbnailColor: '#F0A030',
-        date: 'Feb 10, 2026',
-        readTime: '10 min read',
-        claps: 578,
-        comments: 32,
-        featured: false,
-    },
-    {
-        id: 5,
-        author: 'Vikram Nair',
-        authorAvatar: '🔵',
-        publication: 'Growth Lab',
-        title: 'Retargeting Done Right: Turning Window Shoppers into Loyal Customers',
-        description: 'Most brands waste 60% of their retargeting budget. Learn the funnel-based retargeting framework we use to achieve 4× ROAS consistently across industries.',
-        thumbnailColor: '#3B82F6',
-        date: 'Feb 5, 2026',
-        readTime: '7 min read',
-        claps: 456,
-        comments: 21,
-        featured: false,
-    },
-    {
-        id: 6,
-        author: 'Ananya Iyer',
-        authorAvatar: '🌸',
-        publication: 'Design at Noxtm',
-        title: 'Building Brand Identity Systems That Scale Across Platforms',
-        description: 'A comprehensive guide to creating flexible brand identity systems that maintain consistency from Instagram Stories to billboard campaigns without losing their soul.',
-        thumbnailColor: '#EC4899',
-        date: 'Jan 28, 2026',
-        readTime: '9 min read',
-        claps: 723,
-        comments: 38,
-        featured: true,
-    },
-    {
-        id: 7,
-        author: 'Karthik Reddy',
-        authorAvatar: '🟠',
-        publication: 'Noxtm Insights',
-        title: 'The Content Calendar Blueprint: Planning 90 Days of Social Media',
-        description: 'Stop scrambling for content ideas. Our 90-day content planning methodology helps brands maintain consistency while staying culturally relevant and timely.',
-        thumbnailColor: '#F97316',
-        date: 'Jan 22, 2026',
-        readTime: '11 min read',
-        claps: 389,
-        comments: 27,
-        featured: false,
-    },
-    {
-        id: 8,
-        author: 'Meera Joshi',
-        authorAvatar: '💎',
-        publication: 'Growth Lab',
-        title: 'SEO for Indian Businesses: A Vernacular-First Approach',
-        description: 'With 500M+ Indian internet users preferring regional languages, your SEO strategy needs a fundamental rethink. Here\'s how to capture the next wave of search traffic.',
-        thumbnailColor: '#8B5CF6',
-        date: 'Jan 15, 2026',
-        readTime: '13 min read',
-        claps: 612,
-        comments: 41,
-        featured: false,
-    },
-    {
-        id: 9,
-        author: 'Arjun Mehta',
-        authorAvatar: '🧡',
-        publication: 'Noxtm Insights',
-        title: 'Instagram Reels vs YouTube Shorts: Where Should Indian Brands Invest?',
-        description: 'A data-driven comparison of both platforms in the Indian context — reach, engagement, conversion rates, and audience demographics broken down by industry.',
-        thumbnailColor: '#EF4444',
-        date: 'Jan 8, 2026',
-        readTime: '6 min read',
-        claps: 934,
-        comments: 53,
-        featured: true,
-    },
-    {
-        id: 10,
-        author: 'Sneha Kapoor',
-        authorAvatar: '💜',
-        publication: 'Design at Noxtm',
-        title: 'Motion Graphics for Social Media: The Complete Beginner\'s Guide',
-        description: 'Static posts are losing ground. Learn how to incorporate motion graphics into your social media strategy without a massive production budget or After Effects expertise.',
-        thumbnailColor: '#C4B5FD',
-        date: 'Jan 2, 2026',
-        readTime: '14 min read',
-        claps: 501,
-        comments: 29,
-        featured: false,
-    },
-];
 
 /* ── Helper: Format clap count ── */
 function formatClaps(n) {
@@ -171,7 +28,9 @@ function generateContent(post) {
 /* ── Main BlogPost Component ── */
 function BlogPost() {
     const { id } = useParams();
-    const post = BLOG_POSTS.find(p => p.id === parseInt(id, 10));
+    const [post, setPost] = useState(null);
+    const [allPosts, setAllPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [currentVisitor, setCurrentVisitor] = useState(null);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
@@ -185,11 +44,30 @@ function BlogPost() {
 
     useEffect(() => {
         if (!id) return;
-        try {
-            const saved = localStorage.getItem(`noxtm_blog_comments_${id}`);
-            if (saved) setComments(JSON.parse(saved));
-        } catch { /* ignore */ }
+        const fetchBlog = async () => {
+            setLoading(true);
+            try {
+                const data = await api.getBlog(id);
+                setPost(data);
+            } catch (err) {
+                console.error('Failed to fetch blog:', err);
+                setPost(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBlog();
     }, [id]);
+
+    useEffect(() => {
+        const fetchAllBlogs = async () => {
+            try {
+                const data = await api.getBlogs();
+                setAllPosts(data.filter(b => b.status === 'Published'));
+            } catch { /* ignore */ }
+        };
+        fetchAllBlogs();
+    }, []);
 
     const handleAddComment = () => {
         if (!newComment.trim() || !currentVisitor) return;
@@ -202,19 +80,39 @@ function BlogPost() {
         };
         const updated = [...comments, comment];
         setComments(updated);
-        localStorage.setItem(`noxtm_blog_comments_${id}`, JSON.stringify(updated));
+
         setNewComment('');
     };
 
     /* Related posts: 3 random other posts (memoized to prevent re-shuffle) */
     const relatedPosts = useMemo(() => {
         if (!post) return [];
-        return BLOG_POSTS.filter(p => p.id !== post.id)
+        return allPosts.filter(p => p._id !== post._id)
             .sort(() => 0.5 - Math.random())
             .slice(0, 3);
-    }, [post]);
+    }, [post, allPosts]);
 
-    /* ── Not Found ── */
+    /* ── Not Found / Loading ── */
+    if (loading) {
+        return (
+            <div className="blogpost-page blog-page">
+                <div className="navbar-wrapper">
+                    <nav className="navbar">
+                        <div className="nav-logo">
+                            <Link to="/" className="logo-text">Noxtm Studio</Link>
+                        </div>
+                        <ul className="nav-links">
+                            <li><Link to="/blog">Blogs</Link></li>
+                        </ul>
+                    </nav>
+                </div>
+                <div className="blogpost-notfound">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
     if (!post) {
         return (
             <div className="blogpost-page blog-page">
@@ -463,7 +361,7 @@ function BlogPost() {
                     <h2 className="blogpost-related-title">More from Noxtm Studio</h2>
                     <div className="blogpost-related-grid">
                         {relatedPosts.map(rp => (
-                            <Link to={`/blog/${rp.id}`} className="blogpost-related-card" key={rp.id}>
+                            <Link to={`/blog/${rp.slug || rp._id}`} className="blogpost-related-card" key={rp._id}>
                                 <div className="blogpost-related-thumb" style={{ backgroundColor: rp.thumbnailColor }}>
                                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
                                         <rect x="4" y="4" width="20" height="20" rx="4" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>

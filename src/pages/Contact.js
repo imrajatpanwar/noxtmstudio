@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import api from '../api';
 import './Contact.css';
 
 function Contact() {
@@ -14,17 +15,17 @@ function Contact() {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        // Save to localStorage for admin to see
-        setTimeout(() => {
-            const inquiries = JSON.parse(localStorage.getItem('noxtm_inquiries') || '[]');
-            inquiries.push({ ...form, id: Date.now(), date: new Date().toISOString() });
-            localStorage.setItem('noxtm_inquiries', JSON.stringify(inquiries));
-            setLoading(false);
+        try {
+            await api.createInquiry(form);
             setSubmitted(true);
-        }, 600);
+        } catch (err) {
+            console.error('Failed to submit inquiry:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api';
 import './Admin.css';
-
-const VALID_EMAIL = 'admin@noxtm.studio';
-const VALID_PASSWORD = 'noxtm2026';
 
 function AdminLogin() {
   const navigate = useNavigate();
@@ -13,22 +11,21 @@ function AdminLogin() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      if (email === VALID_EMAIL && password === VALID_PASSWORD) {
-        const token = 'noxtm-admin-' + Date.now() + '-' + Math.random().toString(36).substring(2);
-        localStorage.setItem('noxtm_admin_token', token);
-        localStorage.setItem('noxtm_admin_user', JSON.stringify({ email: VALID_EMAIL, name: 'Admin' }));
-        navigate('/admin/dashboard');
-      } else {
-        setError('Invalid email or password. Please try again.');
-      }
+    try {
+      const data = await api.adminLogin(email, password);
+      localStorage.setItem('noxtm_admin_token', data.token);
+      localStorage.setItem('noxtm_admin_user', JSON.stringify(data.user));
+      navigate('/admin/dashboard');
+    } catch (err) {
+      setError(err.message || 'Invalid email or password. Please try again.');
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   return (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../api';
 
 function VisitorBlogManager() {
     const [blogs, setBlogs] = useState([]);
@@ -10,27 +11,29 @@ function VisitorBlogManager() {
         loadBlogs();
     }, []);
 
-    const loadBlogs = () => {
-        const all = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-        setBlogs(all);
+    const loadBlogs = async () => {
+        try {
+            const all = await api.getVisitorBlogs();
+            setBlogs(all);
+        } catch (err) { /* ignore */ }
     };
 
     const filteredBlogs = blogs
         .filter(b => filter === 'all' || b.status === filter)
         .filter(b => b.title.toLowerCase().includes(search.toLowerCase()));
 
-    const handleApprove = (blogId) => {
-        const all = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-        const updated = all.map(b => b.id === blogId ? { ...b, status: 'approved', updatedAt: new Date().toISOString() } : b);
-        localStorage.setItem('noxtm_visitor_blogs', JSON.stringify(updated));
-        setBlogs(updated);
+    const handleApprove = async (blogId) => {
+        try {
+            await api.updateVisitorBlogStatus(blogId, 'approved');
+            await loadBlogs();
+        } catch (err) { /* ignore */ }
     };
 
-    const handleReject = (blogId) => {
-        const all = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-        const updated = all.map(b => b.id === blogId ? { ...b, status: 'rejected', updatedAt: new Date().toISOString() } : b);
-        localStorage.setItem('noxtm_visitor_blogs', JSON.stringify(updated));
-        setBlogs(updated);
+    const handleReject = async (blogId) => {
+        try {
+            await api.updateVisitorBlogStatus(blogId, 'rejected');
+            await loadBlogs();
+        } catch (err) { /* ignore */ }
     };
 
     const getStatusBadge = (status) => {
@@ -110,10 +113,10 @@ function VisitorBlogManager() {
                         <div style={{ display: 'flex', gap: '8px', marginTop: '24px' }}>
                             {viewBlog.status === 'pending' && (
                                 <>
-                                    <button className="admin-btn admin-btn-accent" onClick={() => { handleApprove(viewBlog.id); setViewBlog({ ...viewBlog, status: 'approved' }); }}>
+                                    <button className="admin-btn admin-btn-accent" onClick={() => { handleApprove(viewBlog._id); setViewBlog({ ...viewBlog, status: 'approved' }); }}>
                                         ✅ Approve
                                     </button>
-                                    <button className="admin-btn admin-btn-danger" onClick={() => { handleReject(viewBlog.id); setViewBlog({ ...viewBlog, status: 'rejected' }); }}>
+                                    <button className="admin-btn admin-btn-danger" onClick={() => { handleReject(viewBlog._id); setViewBlog({ ...viewBlog, status: 'rejected' }); }}>
                                         ❌ Reject
                                     </button>
                                 </>
@@ -145,7 +148,7 @@ function VisitorBlogManager() {
                         </thead>
                         <tbody>
                             {filteredBlogs.map(blog => (
-                                <tr key={blog.id}>
+                                <tr key={blog._id}>
                                     <td>
                                         <strong style={{ cursor: 'pointer' }} onClick={() => setViewBlog(blog)}>
                                             {blog.title}
@@ -175,10 +178,10 @@ function VisitorBlogManager() {
                                             </button>
                                             {blog.status === 'pending' && (
                                                 <>
-                                                    <button className="admin-btn admin-btn-sm admin-btn-accent" onClick={() => handleApprove(blog.id)}>
+                                                    <button className="admin-btn admin-btn-sm admin-btn-accent" onClick={() => handleApprove(blog._id)}>
                                                         ✅
                                                     </button>
-                                                    <button className="admin-btn admin-btn-sm admin-btn-danger" onClick={() => handleReject(blog.id)}>
+                                                    <button className="admin-btn admin-btn-sm admin-btn-danger" onClick={() => handleReject(blog._id)}>
                                                         ❌
                                                     </button>
                                                 </>

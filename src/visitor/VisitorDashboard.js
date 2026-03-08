@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../api';
 import './Visitor.css';
 
 function VisitorDashboard() {
@@ -17,31 +18,36 @@ function VisitorDashboard() {
 
     useEffect(() => {
         const stored = localStorage.getItem('noxtm_visitor_user');
-        if (stored) {
-            const u = JSON.parse(stored);
-            setUser(u);
+        if (!stored) return;
+        const u = JSON.parse(stored);
+        setUser(u);
 
-            const allBlogs = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-            const myBlogs = allBlogs.filter((b) => b.visitorId === u.id);
+        const fetchBlogs = async () => {
+            try {
+                const myBlogs = await api.getVisitorBlogs({ visitorId: u.id });
 
-            const approved = myBlogs.filter((b) => b.status === 'approved').length;
-            const pending = myBlogs.filter((b) => b.status === 'pending').length;
-            const rejected = myBlogs.filter((b) => b.status === 'rejected').length;
+                const approved = myBlogs.filter((b) => b.status === 'approved').length;
+                const pending = myBlogs.filter((b) => b.status === 'pending').length;
+                const rejected = myBlogs.filter((b) => b.status === 'rejected').length;
 
-            setStats({ total: myBlogs.length, approved, pending, rejected });
+                setStats({ total: myBlogs.length, approved, pending, rejected });
 
-            const recent = [...myBlogs]
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .slice(0, 5)
-                .map((b) => ({
-                    id: b.id,
-                    title: b.title,
-                    status: b.status || 'pending',
-                    date: b.createdAt,
-                    excerpt: b.excerpt || '',
-                }));
-            setRecentActivity(recent);
-        }
+                const recent = [...myBlogs]
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .slice(0, 5)
+                    .map((b) => ({
+                        id: b._id,
+                        title: b.title,
+                        status: b.status || 'pending',
+                        date: b.createdAt,
+                        excerpt: b.excerpt || '',
+                    }));
+                setRecentActivity(recent);
+            } catch (err) {
+                console.error('Failed to load blogs:', err);
+            }
+        };
+        fetchBlogs();
     }, []);
 
     if (!user) return null;

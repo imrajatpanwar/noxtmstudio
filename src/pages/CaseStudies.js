@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import api from '../api';
 import './CaseStudies.css';
 
 function CaseStudies() {
@@ -8,11 +9,16 @@ function CaseStudies() {
     const [filter, setFilter] = useState('All');
 
     useEffect(() => {
-        try {
-            const saved = JSON.parse(localStorage.getItem('noxtm_case_studies') || '[]');
-            const published = saved.filter(s => s.status === 'Published');
-            setStudies(published);
-        } catch { }
+        const fetchStudies = async () => {
+            try {
+                const data = await api.getCaseStudies();
+                const published = data.filter(s => s.status === 'Published');
+                setStudies(published);
+            } catch (err) {
+                console.error('Failed to fetch case studies:', err);
+            }
+        };
+        fetchStudies();
     }, []);
 
     const categories = ['All', ...new Set(studies.map(s => s.category).filter(Boolean))];
@@ -65,7 +71,7 @@ function CaseStudies() {
                     </div>
                 ) : (
                     filtered.map(cs => (
-                        <Link to={`/case-studies/${cs.slug || cs.id}`} className="cs-card" key={cs.id}>
+                        <Link to={`/case-studies/${cs.slug || cs._id}`} className="cs-card" key={cs._id}>
                             <div
                                 className="cs-card-image"
                                 style={{

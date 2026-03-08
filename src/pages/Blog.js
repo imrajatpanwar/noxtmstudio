@@ -1,151 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Footer from '../components/Footer';
+import api from '../api';
 import './Blog.css';
-
-/* ── Sample Blog Data ── */
-const BLOG_POSTS = [
-    {
-        id: 1,
-        author: 'Arjun Mehta',
-        authorAvatar: '🧡',
-        publication: 'Noxtm Insights',
-        title: 'Why Indian Brands Need Culturally-Rooted Social Media Strategies',
-        description: 'The brands that win on social media in India aren\'t just translating global content — they\'re building narratives rooted in regional culture, festivals, and everyday traditions that resonate deeply.',
-        thumbnailColor: '#E8722A',
-        date: 'Feb 25, 2026',
-        readTime: '8 min read',
-        claps: 342,
-        comments: 18,
-        featured: true,
-    },
-    {
-        id: 2,
-        author: 'Sneha Kapoor',
-        authorAvatar: '💜',
-        publication: 'Design at Noxtm',
-        title: 'The Art of Scroll-Stopping Creatives: A Design Framework',
-        description: 'After designing 5,000+ social media creatives, we distilled our process into a repeatable framework that consistently delivers 3× higher engagement than industry benchmarks.',
-        thumbnailColor: '#6366F1',
-        date: 'Feb 20, 2026',
-        readTime: '12 min read',
-        claps: 891,
-        comments: 45,
-        featured: true,
-    },
-    {
-        id: 3,
-        author: 'Rohan Desai',
-        authorAvatar: '🟢',
-        publication: 'Growth Lab',
-        title: 'Performance Marketing in 2026: The Complete Strategy Guide for Indian Markets',
-        description: 'From audience micro-segmentation to creative fatigue management, here\'s everything you need to know about running profitable Meta and Google ad campaigns in India this year.',
-        thumbnailColor: '#10B981',
-        date: 'Feb 15, 2026',
-        readTime: '15 min read',
-        claps: 1204,
-        comments: 67,
-        featured: true,
-    },
-    {
-        id: 4,
-        author: 'Priya Sharma',
-        authorAvatar: '🔶',
-        publication: 'Noxtm Insights',
-        title: 'How We Scaled a D2C Brand to 1M Followers in 6 Months',
-        description: 'A detailed case study on how we combined organic content strategy with targeted paid campaigns to build a massive, engaged following for an ethnic wear brand starting from scratch.',
-        thumbnailColor: '#F0A030',
-        date: 'Feb 10, 2026',
-        readTime: '10 min read',
-        claps: 578,
-        comments: 32,
-        featured: false,
-    },
-    {
-        id: 5,
-        author: 'Vikram Nair',
-        authorAvatar: '🔵',
-        publication: 'Growth Lab',
-        title: 'Retargeting Done Right: Turning Window Shoppers into Loyal Customers',
-        description: 'Most brands waste 60% of their retargeting budget. Learn the funnel-based retargeting framework we use to achieve 4× ROAS consistently across industries.',
-        thumbnailColor: '#3B82F6',
-        date: 'Feb 5, 2026',
-        readTime: '7 min read',
-        claps: 456,
-        comments: 21,
-        featured: false,
-    },
-    {
-        id: 6,
-        author: 'Ananya Iyer',
-        authorAvatar: '🌸',
-        publication: 'Design at Noxtm',
-        title: 'Building Brand Identity Systems That Scale Across Platforms',
-        description: 'A comprehensive guide to creating flexible brand identity systems that maintain consistency from Instagram Stories to billboard campaigns without losing their soul.',
-        thumbnailColor: '#EC4899',
-        date: 'Jan 28, 2026',
-        readTime: '9 min read',
-        claps: 723,
-        comments: 38,
-        featured: true,
-    },
-    {
-        id: 7,
-        author: 'Karthik Reddy',
-        authorAvatar: '🟠',
-        publication: 'Noxtm Insights',
-        title: 'The Content Calendar Blueprint: Planning 90 Days of Social Media',
-        description: 'Stop scrambling for content ideas. Our 90-day content planning methodology helps brands maintain consistency while staying culturally relevant and timely.',
-        thumbnailColor: '#F97316',
-        date: 'Jan 22, 2026',
-        readTime: '11 min read',
-        claps: 389,
-        comments: 27,
-        featured: false,
-    },
-    {
-        id: 8,
-        author: 'Meera Joshi',
-        authorAvatar: '💎',
-        publication: 'Growth Lab',
-        title: 'SEO for Indian Businesses: A Vernacular-First Approach',
-        description: 'With 500M+ Indian internet users preferring regional languages, your SEO strategy needs a fundamental rethink. Here\'s how to capture the next wave of search traffic.',
-        thumbnailColor: '#8B5CF6',
-        date: 'Jan 15, 2026',
-        readTime: '13 min read',
-        claps: 612,
-        comments: 41,
-        featured: false,
-    },
-    {
-        id: 9,
-        author: 'Arjun Mehta',
-        authorAvatar: '🧡',
-        publication: 'Noxtm Insights',
-        title: 'Instagram Reels vs YouTube Shorts: Where Should Indian Brands Invest?',
-        description: 'A data-driven comparison of both platforms in the Indian context — reach, engagement, conversion rates, and audience demographics broken down by industry.',
-        thumbnailColor: '#EF4444',
-        date: 'Jan 8, 2026',
-        readTime: '6 min read',
-        claps: 934,
-        comments: 53,
-        featured: true,
-    },
-    {
-        id: 10,
-        author: 'Sneha Kapoor',
-        authorAvatar: '💜',
-        publication: 'Design at Noxtm',
-        title: 'Motion Graphics for Social Media: The Complete Beginner\'s Guide',
-        description: 'Static posts are losing ground. Learn how to incorporate motion graphics into your social media strategy without a massive production budget or After Effects expertise.',
-        thumbnailColor: '#C4B5FD',
-        date: 'Jan 2, 2026',
-        readTime: '14 min read',
-        claps: 501,
-        comments: 29,
-        featured: false,
-    },
-];
 
 const RECOMMENDED_TOPICS = [
     'Programming', 'Digital Marketing', 'Social Media', 'Design',
@@ -162,7 +19,7 @@ function formatClaps(n) {
 /* ── Blog Card Component ── */
 function BlogCard({ post }) {
     return (
-        <Link to={`/blog/${post.id}`} className="blog-card-link">
+        <Link to={`/blog/${post.slug || post._id}`} className="blog-card-link">
         <article className="blog-card">
             <div className="blog-card-content">
                 <div className="blog-card-meta-top">
@@ -228,48 +85,46 @@ function Blog() {
     const [activeTab, setActiveTab] = useState('trending');
     const [newsletterEmail, setNewsletterEmail] = useState('');
     const [newsletterMsg, setNewsletterMsg] = useState('');
-    const [allPosts, setAllPosts] = useState(BLOG_POSTS);
+    const [allPosts, setAllPosts] = useState([]);
     const [visitorUser, setVisitorUser] = useState(null);
 
-    const handleNewsletterSubscribe = () => {
+    const handleNewsletterSubscribe = async () => {
         if (!newsletterEmail.trim() || !newsletterEmail.includes('@')) {
             setNewsletterMsg('Please enter a valid email address.');
             return;
         }
-        const subscribers = JSON.parse(localStorage.getItem('noxtm_newsletter_subscribers') || '[]');
-        if (subscribers.find(s => s.email === newsletterEmail.trim())) {
-            setNewsletterMsg('You are already subscribed!');
-            return;
+        try {
+            await api.subscribe(newsletterEmail.trim());
+            setNewsletterMsg('Thank you for subscribing! 🎉');
+            setNewsletterEmail('');
+            setTimeout(() => setNewsletterMsg(''), 5000);
+        } catch (err) {
+            setNewsletterMsg(err.message || 'Subscription failed. Please try again.');
         }
-        subscribers.push({
-            id: Date.now(),
-            email: newsletterEmail.trim(),
-            subscribedAt: new Date().toISOString()
-        });
-        localStorage.setItem('noxtm_newsletter_subscribers', JSON.stringify(subscribers));
-        setNewsletterMsg('Thank you for subscribing! 🎉');
-        setNewsletterEmail('');
-        setTimeout(() => setNewsletterMsg(''), 5000);
     };
 
     /* Read admin website settings and update document title */
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem('noxtm_website_settings');
-            if (!raw) return;
-            const s = JSON.parse(raw);
-            document.title = `Blog | ${s.siteTitle || 'Noxtm Studio'}`;
-        } catch (_) { /* ignore parse errors */ }
+        const fetchSettings = async () => {
+            try {
+                const s = await api.getSettings();
+                document.title = `Blog | ${s.siteTitle || 'Noxtm Studio'}`;
+            } catch (_) { /* ignore */ }
+        };
+        fetchSettings();
     }, []);
 
-    /* Load approved visitor blogs and merge with hardcoded posts */
+    /* Load blogs from API and merge with approved visitor blogs */
     useEffect(() => {
-        try {
-            const visitorBlogs = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-            const approved = visitorBlogs
-                .filter(b => b.status === 'approved')
-                .map(blog => ({
-                    id: `visitor-${blog.id}`,
+        const fetchBlogs = async () => {
+            try {
+                const [blogs, visitorBlogs] = await Promise.all([
+                    api.getBlogs(),
+                    api.getVisitorBlogs({ status: 'approved' }).catch(() => []),
+                ]);
+                const published = blogs.filter(b => b.status === 'Published');
+                const approved = (Array.isArray(visitorBlogs) ? visitorBlogs : []).map(blog => ({
+                    _id: `visitor-${blog._id}`,
                     author: blog.visitorName,
                     authorAvatar: blog.visitorAvatar || '👤',
                     publication: 'Community',
@@ -283,10 +138,14 @@ function Blog() {
                     featured: false,
                     topics: blog.topics || [],
                     isVisitorBlog: true,
-                    visitorBlogId: blog.id,
+                    visitorBlogId: blog._id,
                 }));
-            setAllPosts([...BLOG_POSTS, ...approved]);
-        } catch { /* ignore */ }
+                setAllPosts([...published, ...approved]);
+            } catch (err) {
+                console.error('Failed to fetch blogs:', err);
+            }
+        };
+        fetchBlogs();
     }, []);
 
     useEffect(() => {
@@ -414,7 +273,7 @@ function Blog() {
                         {/* Blog Cards */}
                         <div className="blog-feed">
                             {filteredPosts.map(post => (
-                                <BlogCard key={post.id} post={post} />
+                                <BlogCard key={post._id} post={post} />
                             ))}
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import api from '../api';
 import './Work.css';
 
 function WorkDetail() {
@@ -8,11 +9,16 @@ function WorkDetail() {
     const [work, setWork] = useState(null);
 
     useEffect(() => {
-        try {
-            const saved = JSON.parse(localStorage.getItem('noxtm_works') || '[]');
-            const found = saved.find(w => (w.slug === slug || w.id === slug) && w.status === 'Published');
-            setWork(found || null);
-        } catch { }
+        const fetchWork = async () => {
+            try {
+                const data = await api.getWork(slug);
+                setWork(data);
+            } catch (err) {
+                console.error('Failed to fetch work:', err);
+                setWork(null);
+            }
+        };
+        fetchWork();
     }, [slug]);
 
     if (!work) {

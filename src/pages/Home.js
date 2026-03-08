@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Footer from '../components/Footer';
+import api from '../api';
 import './Home.css';
 
 /* ── Image imports ── */
@@ -968,36 +969,45 @@ export default function Home() {
     /* Service toggle state */
     const [activeService, setActiveService] = useState(0);
 
-    /* Trust logos from admin (localStorage) */
+    /* Trust logos from admin (API) */
     const [trustLogos, setTrustLogos] = useState([]);
 
     useEffect(() => {
-        try {
-            const saved = JSON.parse(localStorage.getItem('noxtm_trust_logos') || '[]');
-            if (Array.isArray(saved) && saved.length > 0) {
-                setTrustLogos(saved);
-            }
-        } catch { /* ignore corrupt data */ }
+        const fetchTrustLogos = async () => {
+            try {
+                const data = await api.getTrustLogos();
+                if (Array.isArray(data) && data.length > 0) {
+                    setTrustLogos(data);
+                }
+            } catch { /* ignore */ }
+        };
+        fetchTrustLogos();
     }, []);
 
-    /* Case studies from admin (localStorage) */
+    /* Case studies from admin (API) */
     const [adminCaseStudies, setAdminCaseStudies] = useState([]);
     useEffect(() => {
-        try {
-            const saved = JSON.parse(localStorage.getItem('noxtm_case_studies') || '[]');
-            const published = saved.filter(s => s.status === 'Published');
-            if (published.length > 0) setAdminCaseStudies(published);
-        } catch { }
+        const fetchCaseStudies = async () => {
+            try {
+                const data = await api.getCaseStudies();
+                const published = data.filter(s => s.status === 'Published');
+                if (published.length > 0) setAdminCaseStudies(published);
+            } catch { }
+        };
+        fetchCaseStudies();
     }, []);
 
-    /* Blog posts from admin (localStorage) */
+    /* Blog posts from admin (API) */
     const [adminBlogs, setAdminBlogs] = useState([]);
     useEffect(() => {
-        try {
-            const saved = JSON.parse(localStorage.getItem('noxtm_blogs') || '[]');
-            const published = saved.filter(b => b.status === 'Published');
-            setAdminBlogs(published);
-        } catch { }
+        const fetchBlogs = async () => {
+            try {
+                const data = await api.getBlogs();
+                const published = data.filter(b => b.status === 'Published');
+                setAdminBlogs(published);
+            } catch { }
+        };
+        fetchBlogs();
     }, []);
 
     /* Website settings from admin */
@@ -1007,31 +1017,32 @@ export default function Home() {
 
     /* Read admin website settings and apply to <head> */
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem('noxtm_website_settings');
-            if (!raw) return;
-            const s = JSON.parse(raw);
+        const fetchSettings = async () => {
+            try {
+                const s = await api.getSettings();
 
-            document.title = s.siteTitle || 'Noxtm Studio';
+                document.title = s.siteTitle || 'Noxtm Studio';
 
-            setMetaTag('name', 'description', s.siteDescription);
-            setMetaTag('name', 'keywords', s.metaKeywords);
-            setMetaTag('property', 'og:title', s.ogTitle || s.siteTitle);
-            setMetaTag('property', 'og:description', s.ogDescription || s.siteDescription);
-            setMetaTag('property', 'og:image', s.ogImage);
-            setMetaTag('name', 'twitter:card', s.twitterCard || 'summary_large_image');
-            setMetaTag('name', 'twitter:title', s.ogTitle || s.siteTitle);
-            setMetaTag('name', 'twitter:description', s.ogDescription || s.siteDescription);
-            setMetaTag('name', 'robots', s.robotsMeta || 'index, follow');
-            setLinkTag('canonical', s.canonicalUrl);
+                setMetaTag('name', 'description', s.siteDescription);
+                setMetaTag('name', 'keywords', s.metaKeywords);
+                setMetaTag('property', 'og:title', s.ogTitle || s.siteTitle);
+                setMetaTag('property', 'og:description', s.ogDescription || s.siteDescription);
+                setMetaTag('property', 'og:image', s.ogImage);
+                setMetaTag('name', 'twitter:card', s.twitterCard || 'summary_large_image');
+                setMetaTag('name', 'twitter:title', s.ogTitle || s.siteTitle);
+                setMetaTag('name', 'twitter:description', s.ogDescription || s.siteDescription);
+                setMetaTag('name', 'robots', s.robotsMeta || 'index, follow');
+                setLinkTag('canonical', s.canonicalUrl);
 
-            if (s.footerCopyright) setFooterCopyright(s.footerCopyright);
-            setSocialLinks({
-                instagram: s.socialInstagram || '',
-                linkedIn: s.socialLinkedIn || '',
-                twitter: s.socialTwitter || '',
-            });
-        } catch (_) { /* ignore parse errors */ }
+                if (s.footerCopyright) setFooterCopyright(s.footerCopyright);
+                setSocialLinks({
+                    instagram: s.socialInstagram || '',
+                    linkedIn: s.socialLinkedIn || '',
+                    twitter: s.socialTwitter || '',
+                });
+            } catch (_) { /* ignore */ }
+        };
+        fetchSettings();
     }, []);
 
     /* Scroll-triggered animations */

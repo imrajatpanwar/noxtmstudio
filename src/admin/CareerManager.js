@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-
-const STORAGE_KEY = 'noxtm_careers';
-
-function generateId() {
-  return 'job_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-}
+import api from '../api';
 
 const emptyJob = {
-  id: '',
   title: '',
   department: '',
   location: 'Remote',
@@ -33,8 +27,13 @@ function CareerManager() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    setJobs(saved);
+    const loadJobs = async () => {
+      try {
+        const data = await api.getCareers();
+        setJobs(data);
+      } catch (err) { /* ignore */ }
+    };
+    loadJobs();
   }, []);
 
   useEffect(() => {
@@ -44,9 +43,11 @@ function CareerManager() {
     }
   }, [location.state]);
 
-  const saveJobs = (updated) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setJobs(updated);
+  const reloadJobs = async () => {
+    try {
+      const data = await api.getCareers();
+      setJobs(data);
+    } catch (err) { /* ignore */ }
   };
 
   const showToast = (message, type = 'success') => {
@@ -57,7 +58,6 @@ function CareerManager() {
   const handleNew = () => {
     setCurrent({
       ...emptyJob,
-      id: generateId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -73,14 +73,18 @@ function CareerManager() {
     setDeleteTarget(job);
   };
 
-  const confirmDelete = () => {
-    const updated = jobs.filter((j) => j.id !== deleteTarget.id);
-    saveJobs(updated);
-    setDeleteTarget(null);
-    showToast('Job posting deleted successfully.');
+  const confirmDelete = async () => {
+    try {
+      await api.deleteCareer(deleteTarget._id);
+      await reloadJobs();
+      setDeleteTarget(null);
+      showToast('Job posting deleted successfully.');
+    } catch (err) {
+      showToast('Failed to delete job posting.', 'error');
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!current.title.trim()) {
       showToast('Job title is required.', 'error');
       return;
@@ -89,18 +93,20 @@ function CareerManager() {
     const now = new Date().toISOString();
     const toSave = { ...current, updatedAt: now };
 
-    const exists = jobs.find((j) => j.id === toSave.id);
-    let updated;
-    if (exists) {
-      updated = jobs.map((j) => (j.id === toSave.id ? toSave : j));
-    } else {
-      toSave.createdAt = now;
-      updated = [toSave, ...jobs];
+    try {
+      if (toSave._id) {
+        await api.updateCareer(toSave._id, toSave);
+        showToast('Job posting updated successfully.');
+      } else {
+        toSave.createdAt = now;
+        await api.createCareer(toSave);
+        showToast('Job posting created successfully.');
+      }
+      await reloadJobs();
+      setView('list');
+    } catch (err) {
+      showToast('Failed to save job posting.', 'error');
     }
-
-    saveJobs(updated);
-    setView('list');
-    showToast(exists ? 'Job posting updated successfully.' : 'Job posting created successfully.');
   };
 
   const handleCancel = () => {
@@ -133,7 +139,7 @@ function CareerManager() {
 
         <div className="admin-editor">
           <div className="admin-editor-header">
-            <h2>{jobs.find((j) => j.id === current.id) ? 'Edit Job Posting' : 'New Job Posting'}</h2>
+            <h2>{jobs.find((j) => j._id === current._id) ? 'Edit Job Posting' : 'New Job Posting'}</h2>
             <button className="admin-btn admin-btn-outline admin-btn-sm" onClick={handleCancel}>
               ← Back to List
             </button>
@@ -238,7 +244,7 @@ function CareerManager() {
 
           <div className="admin-form-actions">
             <button className="admin-btn admin-btn-primary" onClick={handleSave}>
-              {jobs.find((j) => j.id === current.id) ? 'Update Job' : 'Save Job'}
+              {jobs.find((j) => j._id === current._id) ? 'Update Job' : 'Save Job'}
             </button>
             <button className="admin-btn admin-btn-outline" onClick={handleCancel}>
               Cancel
@@ -335,7 +341,7 @@ function CareerManager() {
               </tr>
             ) : (
               filtered.map((job) => (
-                <tr key={job.id}>
+                <tr key={job._id}>
                   <td className="admin-table-title">{job.title}</td>
                   <td>{job.department || '—'}</td>
                   <td>{job.location}</td>

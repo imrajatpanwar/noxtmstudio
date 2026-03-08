@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
-const STORAGE_KEY = 'noxtm_newsletter_subscribers';
+import api from '../api';
 
 function SubscriberManager() {
   const [subscribers, setSubscribers] = useState([]);
@@ -8,8 +7,13 @@ function SubscriberManager() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    setSubscribers(saved);
+    const loadSubscribers = async () => {
+      try {
+        const subs = await api.getSubscribers();
+        setSubscribers(subs);
+      } catch (err) { /* ignore */ }
+    };
+    loadSubscribers();
   }, []);
 
   const showToast = (message, type = 'success') => {
@@ -17,11 +21,15 @@ function SubscriberManager() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleDelete = (id) => {
-    const updated = subscribers.filter(s => s.id !== id);
-    setSubscribers(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    showToast('Subscriber removed.');
+  const handleDelete = async (id) => {
+    try {
+      await api.deleteSubscriber(id);
+      const subs = await api.getSubscribers();
+      setSubscribers(subs);
+      showToast('Subscriber removed.');
+    } catch (err) {
+      showToast('Failed to remove subscriber.', 'error');
+    }
   };
 
   const handleExportCSV = () => {
@@ -151,7 +159,7 @@ function SubscriberManager() {
             </thead>
             <tbody>
               {filtered.map((sub, idx) => (
-                <tr key={sub.id} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                <tr key={sub._id} style={{ borderBottom: '1px solid #F3F4F6' }}>
                   <td style={{ padding: '12px 16px', color: '#9CA3AF' }}>{idx + 1}</td>
                   <td style={{ padding: '12px 16px', fontWeight: 500 }}>{sub.email}</td>
                   <td style={{ padding: '12px 16px', color: '#6B7280' }}>
@@ -162,7 +170,7 @@ function SubscriberManager() {
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                     <button
-                      onClick={() => handleDelete(sub.id)}
+                      onClick={() => handleDelete(sub._id)}
                       style={{
                         padding: '6px 12px', borderRadius: 6,
                         border: '1px solid #FCA5A5', background: '#FEF2F2',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../api';
 import './Visitor.css';
 
 function VisitorMyBlogs() {
@@ -25,21 +26,26 @@ function VisitorMyBlogs() {
         }
     }, [navigate]);
 
-    const loadBlogs = (visitorId) => {
-        const all = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-        const mine = all.filter(b => b.visitorId === visitorId);
-        setBlogs(mine);
+    const loadBlogs = async (visitorId) => {
+        try {
+            const mine = await api.getVisitorBlogs({ visitorId });
+            setBlogs(mine);
+        } catch (err) {
+            console.error('Failed to load blogs:', err);
+        }
     };
 
     const filteredBlogs = (filter === 'all' ? blogs : blogs.filter(b => b.status === filter))
         .filter(b => !searchQuery || b.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const handleDelete = (blogId) => {
+    const handleDelete = async (blogId) => {
         if (!window.confirm('Are you sure you want to delete this story?')) return;
-        const all = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-        const updated = all.filter(b => b.id !== blogId);
-        localStorage.setItem('noxtm_visitor_blogs', JSON.stringify(updated));
-        if (visitor) loadBlogs(visitor.id);
+        try {
+            await api.deleteVisitorBlog(blogId);
+            if (visitor) loadBlogs(visitor.id);
+        } catch (err) {
+            alert(err.message || 'Failed to delete blog.');
+        }
     };
 
     const handleEdit = (blogId) => {
@@ -145,7 +151,7 @@ function VisitorMyBlogs() {
             ) : (
                 <div className="stories-list">
                     {filteredBlogs.map(blog => (
-                        <article className="story-card" key={blog.id}>
+                        <article className="story-card" key={blog._id}>
                             <div className="story-card-header">
                                 <span className={`story-status story-status--${blog.status}`}>
                                     {blog.status === 'pending' ? 'In Review' : blog.status === 'approved' ? 'Published' : 'Rejected'}
@@ -155,7 +161,7 @@ function VisitorMyBlogs() {
                                 </span>
                             </div>
                             <h3 className="story-card-title">
-                                <Link to={blog.status === 'approved' ? `/blog/visitor-${blog.id}` : '#'} className="story-card-title-link">
+                                <Link to={blog.status === 'approved' ? `/blog/visitor-${blog._id}` : '#'} className="story-card-title-link">
                                     {blog.title}
                                 </Link>
                             </h3>
@@ -173,7 +179,7 @@ function VisitorMyBlogs() {
                                 </div>
                                 <div className="story-card-actions">
                                     {(blog.status === 'pending' || blog.status === 'rejected') && (
-                                        <button className="story-action-btn story-action-edit" onClick={() => handleEdit(blog.id)}>
+                                        <button className="story-action-btn story-action-edit" onClick={() => handleEdit(blog._id)}>
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
                                                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                                                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -181,7 +187,7 @@ function VisitorMyBlogs() {
                                             Edit
                                         </button>
                                     )}
-                                    <button className="story-action-btn story-action-delete" onClick={() => handleDelete(blog.id)}>
+                                    <button className="story-action-btn story-action-delete" onClick={() => handleDelete(blog._id)}>
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
                                             <polyline points="3 6 5 6 21 6" />
                                             <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../api';
 import './Visitor.css';
 
 function VisitorLogin() {
@@ -10,40 +11,21 @@ function VisitorLogin() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      const visitors = JSON.parse(localStorage.getItem('noxtm_visitors') || '[]');
-      const visitor = visitors.find(
-        (v) => v.email.toLowerCase() === email.toLowerCase() && v.password === password
-      );
-
-      if (!visitor) {
-        setError('Invalid email or password.');
-        setLoading(false);
-        return;
-      }
-
-      // Create token and store session
-      const token = `vt_${visitor.id}_${Date.now()}`;
-      localStorage.setItem('noxtm_visitor_token', token);
-      localStorage.setItem(
-        'noxtm_visitor_user',
-        JSON.stringify({
-          id: visitor.id,
-          name: visitor.name,
-          email: visitor.email,
-          bio: visitor.bio,
-          avatar: visitor.avatar,
-        })
-      );
-
-      setLoading(false);
+    try {
+      const data = await api.visitorLogin(email, password);
+      localStorage.setItem('noxtm_visitor_token', data.token);
+      localStorage.setItem('noxtm_visitor_user', JSON.stringify(data.user));
       navigate('/visitor/dashboard');
-    }, 400);
+    } catch (err) {
+      setError(err.message || 'Invalid email or password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-
-const STORAGE_KEY = 'noxtm_blogs';
+import api from '../api';
 
 function generateSlug(title) {
   return title
@@ -12,12 +11,7 @@ function generateSlug(title) {
     .trim();
 }
 
-function generateId() {
-  return 'blog_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-}
-
 const emptyPost = {
-  id: '',
   title: '',
   slug: '',
   author: '',
@@ -53,8 +47,13 @@ function BlogManager() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    setPosts(saved);
+    const loadPosts = async () => {
+      try {
+        const blogs = await api.getBlogs();
+        setPosts(blogs);
+      } catch (err) { /* ignore */ }
+    };
+    loadPosts();
   }, []);
 
   useEffect(() => {
@@ -64,9 +63,11 @@ function BlogManager() {
     }
   }, [location.state]);
 
-  const savePosts = (updated) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setPosts(updated);
+  const reloadPosts = async () => {
+    try {
+      const blogs = await api.getBlogs();
+      setPosts(blogs);
+    } catch (err) { /* ignore */ }
   };
 
   const showToast = (message, type = 'success') => {
@@ -77,7 +78,6 @@ function BlogManager() {
   const handleNew = () => {
     setCurrentPost({
       ...emptyPost,
-      id: generateId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -93,14 +93,18 @@ function BlogManager() {
     setDeleteTarget(post);
   };
 
-  const confirmDelete = () => {
-    const updated = posts.filter((p) => p.id !== deleteTarget.id);
-    savePosts(updated);
-    setDeleteTarget(null);
-    showToast('Blog post deleted successfully.');
+  const confirmDelete = async () => {
+    try {
+      await api.deleteBlog(deleteTarget._id);
+      await reloadPosts();
+      setDeleteTarget(null);
+      showToast('Blog post deleted successfully.');
+    } catch (err) {
+      showToast('Failed to delete blog post.', 'error');
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!currentPost.title.trim()) {
       showToast('Title is required.', 'error');
       return;
@@ -113,18 +117,20 @@ function BlogManager() {
       updatedAt: now,
     };
 
-    const exists = posts.find((p) => p.id === postToSave.id);
-    let updated;
-    if (exists) {
-      updated = posts.map((p) => (p.id === postToSave.id ? postToSave : p));
-    } else {
-      postToSave.createdAt = now;
-      updated = [postToSave, ...posts];
+    try {
+      if (postToSave._id) {
+        await api.updateBlog(postToSave._id, postToSave);
+        showToast('Blog post updated successfully.');
+      } else {
+        postToSave.createdAt = now;
+        await api.createBlog(postToSave);
+        showToast('Blog post created successfully.');
+      }
+      await reloadPosts();
+      setView('list');
+    } catch (err) {
+      showToast('Failed to save blog post.', 'error');
     }
-
-    savePosts(updated);
-    setView('list');
-    showToast(exists ? 'Blog post updated successfully.' : 'Blog post created successfully.');
   };
 
   const handleCancel = () => {
@@ -171,7 +177,7 @@ function BlogManager() {
 
         <div className="admin-editor">
           <div className="admin-editor-header">
-            <h2>{posts.find((p) => p.id === currentPost.id) ? 'Edit Blog Post' : 'New Blog Post'}</h2>
+            <h2>{posts.find((p) => p._id === currentPost._id) ? 'Edit Blog Post' : 'New Blog Post'}</h2>
             <button className="admin-btn admin-btn-outline admin-btn-sm" onClick={handleCancel}>
               ← Back to List
             </button>
@@ -401,7 +407,7 @@ function BlogManager() {
 
           <div className="admin-form-actions">
             <button className="admin-btn admin-btn-accent" onClick={handleSave}>
-              {posts.find((p) => p.id === currentPost.id) ? 'Update Post' : 'Save Post'}
+              {posts.find((p) => p._id === currentPost._id) ? 'Update Post' : 'Save Post'}
             </button>
             <button className="admin-btn admin-btn-outline" onClick={handleCancel}>
               Cancel
@@ -498,7 +504,7 @@ function BlogManager() {
               </tr>
             ) : (
               filteredPosts.map((post) => (
-                <tr key={post.id}>
+                <tr key={post._id}>
                   <td className="admin-table-title">{post.title}</td>
                   <td>{post.author || '—'}</td>
                   <td>{post.category || '—'}</td>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import api from '../api';
 import './Work.css';
 
 function Work() {
@@ -8,11 +9,16 @@ function Work() {
     const [filter, setFilter] = useState('All');
 
     useEffect(() => {
-        try {
-            const saved = JSON.parse(localStorage.getItem('noxtm_works') || '[]');
-            const published = saved.filter(w => w.status === 'Published');
-            setWorks(published);
-        } catch { }
+        const fetchWorks = async () => {
+            try {
+                const data = await api.getWorks();
+                const published = data.filter(w => w.status === 'Published');
+                setWorks(published);
+            } catch (err) {
+                console.error('Failed to fetch works:', err);
+            }
+        };
+        fetchWorks();
     }, []);
 
     const categories = ['All', ...new Set(works.map(w => w.category).filter(Boolean))];
@@ -54,7 +60,7 @@ function Work() {
                 {filtered.length === 0 ? (
                     <div className="work-empty"><p>No work published yet. Check back soon!</p></div>
                 ) : filtered.map(work => (
-                    <Link to={`/work/${work.slug || work.id}`} className="work-card" key={work.id}>
+                    <Link to={`/work/${work.slug || work._id}`} className="work-card" key={work._id}>
                         <div className="work-card-image" style={{
                             background: work.featureImage
                                 ? `url(${work.featureImage}) center/cover no-repeat`

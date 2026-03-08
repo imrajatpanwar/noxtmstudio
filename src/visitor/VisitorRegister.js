@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../api';
 import './Visitor.css';
 
 function VisitorRegister() {
@@ -20,7 +21,7 @@ function VisitorRegister() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -41,51 +42,18 @@ function VisitorRegister() {
       return;
     }
 
-    const visitors = JSON.parse(localStorage.getItem('noxtm_visitors') || '[]');
-    const emailExists = visitors.some(
-      (v) => v.email.toLowerCase() === email.toLowerCase()
-    );
-
-    if (emailExists) {
-      setError('An account with this email already exists.');
-      return;
-    }
-
     setLoading(true);
 
-    setTimeout(() => {
-      const newVisitor = {
-        id: Date.now(),
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        password,
-        bio: bio.trim(),
-        avatar: '👤',
-        followers: [],
-        following: [],
-        createdAt: new Date().toISOString(),
-      };
-
-      visitors.push(newVisitor);
-      localStorage.setItem('noxtm_visitors', JSON.stringify(visitors));
-
-      // Auto-login
-      const token = `vt_${newVisitor.id}_${Date.now()}`;
-      localStorage.setItem('noxtm_visitor_token', token);
-      localStorage.setItem(
-        'noxtm_visitor_user',
-        JSON.stringify({
-          id: newVisitor.id,
-          name: newVisitor.name,
-          email: newVisitor.email,
-          bio: newVisitor.bio,
-          avatar: newVisitor.avatar,
-        })
-      );
-
-      setLoading(false);
+    try {
+      const data = await api.visitorRegister({ name: name.trim(), email: email.trim(), password, bio: bio.trim() });
+      localStorage.setItem('noxtm_visitor_token', data.token);
+      localStorage.setItem('noxtm_visitor_user', JSON.stringify(data.user));
       navigate('/visitor/dashboard');
-    }, 400);
+    } catch (err) {
+      setError(err.message || 'Registration failed.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

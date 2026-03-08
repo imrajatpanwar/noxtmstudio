@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import api from '../api';
 import './CaseStudies.css';
 
 function CaseStudyDetail() {
@@ -8,11 +9,16 @@ function CaseStudyDetail() {
     const [study, setStudy] = useState(null);
 
     useEffect(() => {
-        try {
-            const saved = JSON.parse(localStorage.getItem('noxtm_case_studies') || '[]');
-            const found = saved.find(s => (s.slug === slug || s.id === slug) && s.status === 'Published');
-            setStudy(found || null);
-        } catch { }
+        const fetchStudy = async () => {
+            try {
+                const data = await api.getCaseStudy(slug);
+                setStudy(data);
+            } catch (err) {
+                console.error('Failed to fetch case study:', err);
+                setStudy(null);
+            }
+        };
+        fetchStudy();
     }, [slug]);
 
     if (!study) {

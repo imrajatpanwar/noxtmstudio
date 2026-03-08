@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../api';
 import './Visitor.css';
 
 function VisitorChangePassword() {
@@ -18,7 +19,7 @@ function VisitorChangePassword() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -40,33 +41,17 @@ function VisitorChangePassword() {
       return;
     }
 
-    const stored = localStorage.getItem('noxtm_visitor_user');
-    if (!stored) return;
-    const user = JSON.parse(stored);
-
-    const visitors = JSON.parse(localStorage.getItem('noxtm_visitors') || '[]');
-    const idx = visitors.findIndex((v) => v.id === user.id);
-
-    if (idx === -1) {
-      setError('User not found.');
-      return;
-    }
-
-    if (visitors[idx].password !== currentPassword) {
-      setError('Current password is incorrect.');
-      return;
-    }
-
     setLoading(true);
 
-    setTimeout(() => {
-      visitors[idx].password = newPassword;
-      localStorage.setItem('noxtm_visitors', JSON.stringify(visitors));
-
+    try {
+      await api.changeVisitorPassword({ currentPassword, newPassword });
       setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setSuccess('Password changed successfully.');
+    } catch (err) {
+      setError(err.message || 'Failed to change password.');
+    } finally {
       setLoading(false);
-    }, 400);
+    }
   };
 
   return (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -20,30 +21,17 @@ function Dashboard() {
   const [logoToast, setLogoToast] = useState('');
 
   useEffect(() => {
-    const blogs = JSON.parse(localStorage.getItem('noxtm_blogs') || '[]');
-    const cases = JSON.parse(localStorage.getItem('noxtm_case_studies') || '[]');
-    const careers = JSON.parse(localStorage.getItem('noxtm_careers') || '[]');
-    const activeJobs = careers.filter((c) => c.status === 'Active').length;
-
-    const visitors = JSON.parse(localStorage.getItem('noxtm_visitors') || '[]');
-    const visitorBlogs = JSON.parse(localStorage.getItem('noxtm_visitor_blogs') || '[]');
-    const pendingBlogs = visitorBlogs.filter((b) => b.status === 'pending').length;
-    const subscribers = JSON.parse(localStorage.getItem('noxtm_newsletter_subscribers') || '[]');
-
-    setStats({
-      blogPosts: blogs.length,
-      caseStudies: cases.length,
-      activeJobs: activeJobs,
-      totalViews: 14382,
-      totalVisitors: visitors.length,
-      pendingBlogs: pendingBlogs,
-      subscribers: subscribers.length,
-    });
-
-    try {
-      const savedLogos = JSON.parse(localStorage.getItem('noxtm_trust_logos') || '[]');
-      if (Array.isArray(savedLogos)) setTrustLogos(savedLogos);
-    } catch { /* ignore corrupt data */ }
+    const loadData = async () => {
+      try {
+        const data = await api.getDashboardStats();
+        setStats(data);
+      } catch (err) { /* ignore */ }
+      try {
+        const logos = await api.getTrustLogos();
+        if (Array.isArray(logos)) setTrustLogos(logos);
+      } catch (err) { /* ignore */ }
+    };
+    loadData();
   }, []);
 
   const showLogoToast = (msg) => {
@@ -51,23 +39,30 @@ function Dashboard() {
     setTimeout(() => setLogoToast(''), 3000);
   };
 
-  const handleAddLogo = (e) => {
+  const handleAddLogo = async (e) => {
     e.preventDefault();
     if (!newLogoName.trim() || !newLogoUrl.trim()) return;
-    const logo = { id: Date.now(), name: newLogoName.trim(), imageUrl: newLogoUrl.trim() };
-    const updated = [...trustLogos, logo];
-    setTrustLogos(updated);
-    localStorage.setItem('noxtm_trust_logos', JSON.stringify(updated));
-    setNewLogoName('');
-    setNewLogoUrl('');
-    showLogoToast('Logo added successfully!');
+    try {
+      await api.createTrustLogo({ name: newLogoName.trim(), imageUrl: newLogoUrl.trim() });
+      const logos = await api.getTrustLogos();
+      setTrustLogos(logos);
+      setNewLogoName('');
+      setNewLogoUrl('');
+      showLogoToast('Logo added successfully!');
+    } catch (err) {
+      showLogoToast('Failed to add logo.');
+    }
   };
 
-  const handleDeleteLogo = (id) => {
-    const updated = trustLogos.filter((l) => l.id !== id);
-    setTrustLogos(updated);
-    localStorage.setItem('noxtm_trust_logos', JSON.stringify(updated));
-    showLogoToast('Logo deleted.');
+  const handleDeleteLogo = async (id) => {
+    try {
+      await api.deleteTrustLogo(id);
+      const logos = await api.getTrustLogos();
+      setTrustLogos(logos);
+      showLogoToast('Logo deleted.');
+    } catch (err) {
+      showLogoToast('Failed to delete logo.');
+    }
   };
 
   const recentActivity = [
@@ -243,7 +238,7 @@ function Dashboard() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
             {trustLogos.map((logo) => (
-              <div key={logo.id} style={{
+              <div key={logo._id} style={{
                 background: 'var(--card-bg, #1a1a2e)',
                 border: '1px solid var(--border, #333)',
                 borderRadius: '8px',
@@ -259,7 +254,7 @@ function Dashboard() {
                 <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--text-primary, #fff)' }}>{logo.name}</p>
                 <button
                   className="admin-btn admin-btn-sm admin-btn-danger"
-                  onClick={() => handleDeleteLogo(logo.id)}
+                  onClick={() => handleDeleteLogo(logo._id)}
                 >
                   Delete
                 </button>

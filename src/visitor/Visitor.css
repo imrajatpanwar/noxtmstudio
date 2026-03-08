@@ -766,7 +766,6 @@
    STORIES PAGE — VIRĀT Design System
    ════════════════════════════════════════════════════ */
 .stories-page {
-    max-width: 800px;
 }
 
 .stories-header {
@@ -1109,7 +1108,6 @@
    VISITOR DASHBOARD — VIRĀT Design System
    ════════════════════════════════════════════════════ */
 .vd-dashboard {
-    max-width: 800px;
 }
 
 /* Welcome Section */
@@ -1544,7 +1542,6 @@
 /* ─── WRITE BLOG PAGE ─────────────────────────── */
 /* ══════════════════════════════════════════════ */
 .visitor-write-page {
-    max-width: 780px;
 }
 
 .visitor-write-header {

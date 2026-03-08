@@ -241,4 +241,7 @@
     .ct-form-wrapper {
         padding: 1.5rem;
     }
+    .ct-reset-btn {
+        width: 100%;
+    }
 }

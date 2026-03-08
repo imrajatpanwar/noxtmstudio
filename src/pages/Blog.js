@@ -87,11 +87,12 @@ function BlogCard({ post }) {
 
 /* ── Main Blog Page ── */
 function Blog() {
-    const [activeTab, setActiveTab] = useState('trending');
+    const [activeTab, setActiveTab] = useState('foryou');
     const [newsletterEmail, setNewsletterEmail] = useState('');
     const [newsletterMsg, setNewsletterMsg] = useState('');
     const [allPosts, setAllPosts] = useState([]);
     const [visitorUser, setVisitorUser] = useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleNewsletterSubscribe = async () => {
         if (!newsletterEmail.trim() || !newsletterEmail.includes('@')) {
@@ -244,13 +245,35 @@ function Blog() {
                     {(() => {
                         const visitor = JSON.parse(localStorage.getItem('noxtm_visitor_user') || 'null');
                         return visitor ? (
-                            <Link to="/visitor/write" className="nav-write-btn">Write</Link>
+                            <Link to="/visitor/write" className="nav-write-btn nav-btn-desktop">Write</Link>
                         ) : (
-                            <Link to="/visitor/login" className="nav-signin-btn">Sign in</Link>
+                            <Link to="/visitor/login" className="nav-signin-btn nav-btn-desktop">Sign in</Link>
                         );
                     })()}
-                    <Link to="/#contact" className="nav-cta">Contact</Link>
+                    <Link to="/#contact" className="nav-cta nav-cta-desktop">Contact</Link>
+                    <button className="mobile-hamburger" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
+                        <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+                        <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+                        <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+                    </button>
                 </nav>
+            </div>
+            {/* Mobile Menu Overlay */}
+            <div className={`mobile-menu-overlay ${mobileMenuOpen ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}></div>
+            <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
+                <Link to="/case-studies" onClick={() => setMobileMenuOpen(false)}>Case Studies</Link>
+                <Link to="/work" onClick={() => setMobileMenuOpen(false)}>Work</Link>
+                <Link to="/blog" onClick={() => setMobileMenuOpen(false)}>Blogs</Link>
+                <Link to="/company" onClick={() => setMobileMenuOpen(false)}>Company</Link>
+                {(() => {
+                    const visitor = JSON.parse(localStorage.getItem('noxtm_visitor_user') || 'null');
+                    return visitor ? (
+                        <Link to="/visitor/write" className="mobile-menu-cta" onClick={() => setMobileMenuOpen(false)}>Write</Link>
+                    ) : (
+                        <Link to="/visitor/login" onClick={() => setMobileMenuOpen(false)}>Sign in</Link>
+                    );
+                })()}
+                <Link to="/#contact" className="mobile-menu-cta" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             </div>
 
             {/* ═══ Page Content ═══ */}
@@ -261,15 +284,6 @@ function Blog() {
                         {/* Tab Switcher */}
                         <div className="blog-tabs">
                             <button
-                                className={`blog-tab ${activeTab === 'trending' ? 'blog-tab--active' : ''}`}
-                                onClick={() => setActiveTab('trending')}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginRight: 6 }}>
-                                    <path d="M8 2 L10 6 L14 7 L11 10 L12 14 L8 12 L4 14 L5 10 L2 7 L6 6 Z" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                                Trending
-                            </button>
-                            <button
                                 className={`blog-tab ${activeTab === 'foryou' ? 'blog-tab--active' : ''}`}
                                 onClick={() => setActiveTab('foryou')}
                             >
@@ -278,6 +292,15 @@ function Blog() {
                                     <path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
                                 </svg>
                                 For you
+                            </button>
+                            <button
+                                className={`blog-tab ${activeTab === 'trending' ? 'blog-tab--active' : ''}`}
+                                onClick={() => setActiveTab('trending')}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginRight: 6 }}>
+                                    <path d="M8 1C8 1 5.5 5 5.5 8.5C5.5 10.5 6 11.5 7 12.5C6 12 5 11 5 9C3.5 10.5 3 12 3 13.5C3 15.5 5 16 6.5 16C4.5 14.5 5.5 12 7 11C7 13 8 14.5 8 14.5C8 14.5 9 13 9 11C10.5 12 11.5 14.5 9.5 16C11 16 13 15.5 13 13.5C13 12 12.5 10.5 11 9C11 11 10 12 9 12.5C10 11.5 10.5 10.5 10.5 8.5C10.5 5 8 1 8 1Z" stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                Trending
                             </button>
                         </div>
 

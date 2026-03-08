@@ -224,4 +224,5 @@
     .comp-services-grid { grid-template-columns: 1fr; }
     .comp-values-grid { grid-template-columns: 1fr; gap: 1.5rem; }
     .comp-stat-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .comp-cta-btn { width: 100%; text-align: center; }
 }

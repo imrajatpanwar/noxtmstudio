@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import api from '../api';
 import './CaseStudies.css';
 
@@ -27,20 +28,7 @@ function CaseStudies() {
     return (
         <div className="cs-page">
             {/* Navbar */}
-            <div className="navbar-wrapper">
-                <nav className="navbar">
-                    <div className="nav-logo">
-                        <Link to="/" className="logo-text" style={{textDecoration:'none',color:'inherit'}}>Noxtm Studio</Link>
-                    </div>
-                    <ul className="nav-links">
-                        <li><Link to="/">Home</Link></li>
-                        <li><Link to="/blog">Blogs</Link></li>
-                        <li><Link to="/case-studies" style={{color:'var(--text-primary)'}}>Case Studies</Link></li>
-                        <li><Link to="/work">Work</Link></li>
-                    </ul>
-                    <Link to="/blog" className="nav-cta">Explore Blog</Link>
-                </nav>
-            </div>
+            <Navbar ctaText="Explore Blog" ctaLink="/blog" />
 
             {/* Hero */}
             <section className="cs-hero">

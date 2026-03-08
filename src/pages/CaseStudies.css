@@ -246,8 +246,21 @@
 
 @media (max-width: 768px) {
     .cs-hero-title { font-size: 2rem; }
+    .cs-hero { padding: 4rem 1rem 2rem; }
     .cs-grid { grid-template-columns: 1fr; padding: 0 1rem 3rem; }
     .csd-hero { height: 280px; }
     .csd-title { font-size: 1.75rem; }
     .csd-meta { gap: 1.5rem; }
+    .cs-filter-bar { padding: 0 1rem 1.5rem; }
+}
+
+@media (max-width: 480px) {
+    .cs-hero-title { font-size: 1.6rem; }
+    .cs-hero-sub { font-size: 0.95rem; }
+    .cs-filter-btn { padding: 6px 14px; font-size: 0.8rem; }
+    .csd-hero { height: 200px; }
+    .csd-title { font-size: 1.5rem; }
+    .csd-content { padding: 2rem 1rem 3rem; }
+    .cs-card-image { height: 180px; }
+    .cs-card-body { padding: 1rem; }
 }

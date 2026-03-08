@@ -395,11 +395,29 @@
         gap: 16px;
         align-items: flex-start;
     }
+
+    /* Blog page navbar mobile */
+    .blogpost-page .nav-links {
+        display: none;
+    }
+
+    .blogpost-page .nav-cta-desktop,
+    .blogpost-page .nav-btn-desktop {
+        display: none;
+    }
 }
 
 @media (max-width: 480px) {
+    .blogpost-container {
+        padding: 80px 12px 32px;
+    }
+
     .blogpost-title {
-        font-size: 28px;
+        font-size: 24px;
+    }
+
+    .blogpost-subtitle {
+        font-size: 1rem;
     }
 
     .blogpost-author-row {
@@ -410,6 +428,19 @@
     .blogpost-follow-btn {
         width: 100%;
         text-align: center;
+    }
+
+    .blogpost-body p {
+        font-size: 0.95rem;
+    }
+
+    .blogpost-featured {
+        height: 180px;
+    }
+
+    .blogpost-related-thumb {
+        width: 80px;
+        height: 60px;
     }
 }
 

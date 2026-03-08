@@ -244,3 +244,10 @@
     .wd-title { font-size: 1.75rem; }
     .wd-meta { gap: 1.5rem; }
 }
+
+@media (max-width: 480px) {
+    .work-hero-title { font-size: 1.6rem; }
+    .wd-hero { height: 200px; }
+    .wd-title { font-size: 1.5rem; }
+    .wd-content { padding: 2rem 1rem 3rem; }
+}

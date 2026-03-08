@@ -1445,12 +1445,77 @@
     .vd-welcome-name { font-size: 28px; }
     .vd-stats { grid-template-columns: repeat(2, 1fr); }
     .vd-actions-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Write blog form */
+    .visitor-write-header h1 { font-size: 22px; }
+    .visitor-write-title-input { font-size: 18px; padding: 10px 14px; }
+    .visitor-write-actions { flex-direction: column; }
+    .visitor-write-submit-btn,
+    .visitor-write-cancel-btn { width: 100%; text-align: center; }
+    .visitor-write-topics-grid { gap: 6px; }
+    .visitor-write-topic-pill { padding: 5px 10px; font-size: 12px; }
+
+    /* Feature upload area */
+    .feature-upload-placeholder { padding: 28px 16px; }
+    .visitor-write-feature-preview img { max-height: 180px; }
+
+    /* Block editor toolbar */
+    .block-toolbar { flex-wrap: wrap; gap: 4px; }
+    .block-toolbar button { padding: 4px 8px; font-size: 12px; }
+
+    /* Story cards */
+    .story-card { padding: 16px; }
+    .story-card-footer { flex-direction: column; gap: 8px; align-items: flex-start; }
+    .story-card-actions { width: 100%; }
+    .story-action-btn { flex: 1; justify-content: center; }
+
+    /* Activity list */
+    .vd-activity-item { padding: 12px 16px; gap: 10px; }
+    .vd-activity-side { flex-direction: row; gap: 8px; }
+    .vd-activity-date { white-space: nowrap; }
+
+    /* Profile */
+    .visitor-profile-header { flex-direction: column; align-items: center; text-align: center; }
+    .visitor-profile-meta { justify-content: center; flex-wrap: wrap; }
+    .visitor-profile-info h1 { font-size: 20px; }
+
+    /* Quick actions */
+    .vd-action-card { padding: 12px; }
+    .vd-action-text p { display: none; }
 }
 
 @media (max-width: 480px) {
     .stories-stats-row { grid-template-columns: 1fr 1fr; }
     .vd-stats { grid-template-columns: 1fr 1fr; }
     .vd-actions-grid { grid-template-columns: 1fr; }
+
+    /* Visitor content */
+    .visitor-content { padding: 20px 12px; padding-top: 56px; }
+
+    /* Write blog form */
+    .visitor-write-form { gap: 16px; }
+    .visitor-write-title-input { font-size: 16px; }
+
+    /* Story cards */
+    .story-card-header { flex-direction: column; gap: 4px; align-items: flex-start; }
+    .story-card-actions { flex-direction: column; }
+    .story-action-btn { width: 100%; }
+
+    /* Auth pages */
+    .visitor-auth-card { padding: 24px 16px; }
+    .visitor-auth-card h1 { font-size: 22px; }
+
+    /* Dashboard */
+    .vd-welcome-name { font-size: 24px; }
+    .vd-stat-value { font-size: 22px; }
+    .vd-stat-card { padding: 14px; gap: 10px; }
+    .vd-stat-icon { width: 36px; height: 36px; border-radius: 10px; }
+
+    /* Page headers */
+    .visitor-page-header h1 { font-size: 22px; }
+
+    /* Stats page */
+    .visitor-stats-grid { grid-template-columns: 1fr; }
 }
 
 /* ── Password Eye Toggle ── */

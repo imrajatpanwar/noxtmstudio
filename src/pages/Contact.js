@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import api from '../api';
 import './Contact.css';
 
@@ -31,20 +32,7 @@ function Contact() {
     return (
         <div className="contact-page">
             {/* Navbar */}
-            <div className="navbar-wrapper">
-                <nav className="navbar">
-                    <div className="nav-logo">
-                        <Link to="/" className="logo-text" style={{textDecoration:'none',color:'inherit'}}>Noxtm Studio</Link>
-                    </div>
-                    <ul className="nav-links">
-                        <li><Link to="/">Home</Link></li>
-                        <li><Link to="/blog">Blogs</Link></li>
-                        <li><Link to="/case-studies">Case Studies</Link></li>
-                        <li><Link to="/company">Company</Link></li>
-                    </ul>
-                    <Link to="/contact" className="nav-cta" style={{pointerEvents:'none',opacity:0.6}}>Contact</Link>
-                </nav>
-            </div>
+            <Navbar ctaText="Contact" ctaLink="/contact" ctaStyle={{pointerEvents:'none',opacity:0.6}} />
 
             {/* Hero */}
             <section className="ct-hero">

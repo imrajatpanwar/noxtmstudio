@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, NavLink } from 'react-router-dom';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import api from '../api';
 import './BlogPost.css';
 import './Blog.css';
@@ -168,16 +169,7 @@ function BlogPost() {
     if (loading) {
         return (
             <div className="blogpost-page blog-page">
-                <div className="navbar-wrapper">
-                    <nav className="navbar">
-                        <div className="nav-logo">
-                            <Link to="/" className="logo-text">Noxtm Studio</Link>
-                        </div>
-                        <ul className="nav-links">
-                            <li><Link to="/blog">Blogs</Link></li>
-                        </ul>
-                    </nav>
-                </div>
+                <Navbar ctaText="Contact" ctaLink="/#contact" />
                 <div className="blogpost-notfound">
                     <p>Loading...</p>
                 </div>
@@ -189,32 +181,7 @@ function BlogPost() {
         return (
             <div className="blogpost-page blog-page">
                 {/* Navbar */}
-                <div className="navbar-wrapper">
-                    <nav className="navbar">
-                        <div className="nav-logo">
-                            <Link to="/" className="logo-text">Noxtm Studio</Link>
-                        </div>
-                        <ul className="nav-links">
-                            <li><Link to="/case-studies">Case Studies</Link></li>
-                            <li><Link to="/work">Work</Link></li>
-                            <li><Link to="/">Services</Link></li>
-                            <li className="nav-dropdown-parent">
-                                <Link to="/" className="nav-dropdown-trigger">
-                                    About{' '}
-                                    <svg className="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none">
-                                        <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                </Link>
-                                <ul className="nav-dropdown">
-                                    <li><Link to="/blog">Blogs</Link></li>
-                                    <li><Link to="/">Company</Link></li>
-                                    <li><Link to="/">Team</Link></li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <Link to="/#contact" className="nav-cta">Contact</Link>
-                    </nav>
-                </div>
+                <Navbar ctaText="Contact" ctaLink="/#contact" />
 
                 <div className="blogpost-notfound">
                     <h1>Post not found</h1>
@@ -281,32 +248,7 @@ function BlogPost() {
                 </aside>
             )}
             {/* ═══ Navbar ═══ */}
-            <div className="navbar-wrapper">
-                <nav className="navbar">
-                    <div className="nav-logo">
-                        <Link to="/" className="logo-text">Noxtm Studio</Link>
-                    </div>
-                    <ul className="nav-links">
-                        <li><Link to="/case-studies">Case Studies</Link></li>
-                        <li><Link to="/work">Work</Link></li>
-                        <li><Link to="/">Services</Link></li>
-                        <li className="nav-dropdown-parent">
-                            <Link to="/" className="nav-dropdown-trigger">
-                                About{' '}
-                                <svg className="dropdown-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none">
-                                    <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                            </Link>
-                            <ul className="nav-dropdown">
-                                <li><Link to="/blog">Blogs</Link></li>
-                                <li><Link to="/">Company</Link></li>
-                                <li><Link to="/">Team</Link></li>
-                            </ul>
-                        </li>
-                    </ul>
-                    <Link to="/#contact" className="nav-cta">Contact</Link>
-                </nav>
-            </div>
+            <Navbar ctaText="Contact" ctaLink="/#contact" />
 
             {/* ═══ Article ═══ */}
             <article className="blogpost-container">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import api from '../api';
 import './CaseStudies.css';
 
@@ -24,15 +25,7 @@ function CaseStudyDetail() {
     if (!study) {
         return (
             <div className="cs-page">
-                <div className="navbar-wrapper">
-                    <nav className="navbar">
-                        <div className="nav-logo"><Link to="/" className="logo-text" style={{textDecoration:'none',color:'inherit'}}>Noxtm Studio</Link></div>
-                        <ul className="nav-links">
-                            <li><Link to="/">Home</Link></li>
-                            <li><Link to="/case-studies">Case Studies</Link></li>
-                        </ul>
-                    </nav>
-                </div>
+                <Navbar ctaText="All Studies" ctaLink="/case-studies" />
                 <div className="cs-not-found">
                     <h2>Case Study Not Found</h2>
                     <p>The case study you're looking for doesn't exist or hasn't been published yet.</p>
@@ -45,16 +38,7 @@ function CaseStudyDetail() {
 
     return (
         <div className="cs-page">
-            <div className="navbar-wrapper">
-                <nav className="navbar">
-                    <div className="nav-logo"><Link to="/" className="logo-text" style={{textDecoration:'none',color:'inherit'}}>Noxtm Studio</Link></div>
-                    <ul className="nav-links">
-                        <li><Link to="/">Home</Link></li>
-                        <li><Link to="/case-studies">Case Studies</Link></li>
-                    </ul>
-                    <Link to="/case-studies" className="nav-cta">All Studies</Link>
-                </nav>
-            </div>
+            <Navbar ctaText="All Studies" ctaLink="/case-studies" />
 
             {/* Hero banner */}
             <section

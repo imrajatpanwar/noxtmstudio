@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import api from '../api';
 import './Work.css';
 
@@ -24,12 +25,7 @@ function WorkDetail() {
     if (!work) {
         return (
             <div className="work-page">
-                <div className="navbar-wrapper">
-                    <nav className="navbar">
-                        <div className="nav-logo"><Link to="/" className="logo-text" style={{textDecoration:'none',color:'inherit'}}>Noxtm Studio</Link></div>
-                        <ul className="nav-links"><li><Link to="/">Home</Link></li><li><Link to="/work">Work</Link></li></ul>
-                    </nav>
-                </div>
+                <Navbar ctaText="All Work" ctaLink="/work" />
                 <div className="work-not-found">
                     <h2>Work Not Found</h2>
                     <p>The work item you're looking for doesn't exist or hasn't been published yet.</p>
@@ -42,13 +38,7 @@ function WorkDetail() {
 
     return (
         <div className="work-page">
-            <div className="navbar-wrapper">
-                <nav className="navbar">
-                    <div className="nav-logo"><Link to="/" className="logo-text" style={{textDecoration:'none',color:'inherit'}}>Noxtm Studio</Link></div>
-                    <ul className="nav-links"><li><Link to="/">Home</Link></li><li><Link to="/work">Work</Link></li></ul>
-                    <Link to="/work" className="nav-cta">All Work</Link>
-                </nav>
-            </div>
+            <Navbar ctaText="All Work" ctaLink="/work" />
 
             <section className="wd-hero" style={{
                 background: work.featureImage

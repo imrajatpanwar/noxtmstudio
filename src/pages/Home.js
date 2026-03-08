@@ -968,6 +968,7 @@ function setLinkTag(rel, href) {
 export default function Home() {
     /* Service toggle state */
     const [activeService, setActiveService] = useState(0);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     /* Trust logos from admin (API) */
     const [trustLogos, setTrustLogos] = useState([]);
@@ -1081,8 +1082,22 @@ export default function Home() {
                             </ul>
                         </li>
                     </ul>
-                    <a href="/contact" className="nav-cta">Contact</a>
+                    <a href="/contact" className="nav-cta nav-cta-desktop">Contact</a>
+                    <button className="mobile-hamburger" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
+                        <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+                        <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+                        <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
+                    </button>
                 </nav>
+            </div>
+            {/* Mobile Menu Overlay */}
+            <div className={`mobile-menu-overlay ${mobileMenuOpen ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}></div>
+            <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
+                <a href="/case-studies" onClick={() => setMobileMenuOpen(false)}>Case Studies</a>
+                <a href="/work" onClick={() => setMobileMenuOpen(false)}>Work</a>
+                <a href="/blog" onClick={() => setMobileMenuOpen(false)}>Blogs</a>
+                <a href="/company" onClick={() => setMobileMenuOpen(false)}>Company</a>
+                <a href="/contact" className="mobile-menu-cta" onClick={() => setMobileMenuOpen(false)}>Contact</a>
             </div>
 
             {/* ═══ Full-Screen Hero Rectangle ═══ */}

@@ -583,9 +583,10 @@ app.post('/api/visitor-blogs', visitorAuth, async (req, res) => {
 
 app.put('/api/visitor-blogs/:id', visitorAuth, async (req, res) => {
   try {
+    const { title, content, excerpt, featureImage, topics, readTime } = req.body;
     const blog = await VisitorBlog.findOneAndUpdate(
       { _id: req.params.id, visitorId: req.visitor.id },
-      req.body,
+      { title, content, excerpt, featureImage, topics, readTime, status: 'pending' },
       { new: true }
     );
     if (!blog) return res.status(404).json({ error: 'Blog not found or not authorized' });

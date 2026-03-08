@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import VerificationBadge from './image/Verification.svg';
 import { Link, NavLink } from 'react-router-dom';
 import Footer from '../components/Footer';
 import api from '../api';
@@ -30,7 +31,7 @@ function BlogCard({ post }) {
                     )}
                     <span className="blog-card-byline">
                         In <strong>{post.publication}</strong> by {post.author}
-                        {post.authorVerified && <span className="verified-badge" title="Verified">✓</span>}
+                        {post.authorVerified && <img src={VerificationBadge} className="verified-badge" title="Verified" alt="Verified" />}
                     </span>
                 </div>
                 <h2 className="blog-card-title">{post.title}</h2>
@@ -216,7 +217,7 @@ function Blog() {
                         <div className="sidebar-user-info">
                             <div className="sidebar-user-name">
                                 {visitorUser.name}
-                                {visitorUser.verified && <span className="verified-badge" title="Verified">✓</span>}
+                                {visitorUser.verified && <img src={VerificationBadge} className="verified-badge" title="Verified" alt="Verified" />}
                             </div>
                             <div className="sidebar-user-email">{visitorUser.email}</div>
                         </div>

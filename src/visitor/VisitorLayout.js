@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import VerificationBadge from '../pages/image/Verification.svg';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import api from '../api';
 import './Visitor.css';
@@ -144,7 +145,7 @@ function VisitorLayout() {
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">
               {user.name}
-              {user.verified && <span className="verified-badge" title="Verified">✓</span>}
+              {user.verified && <img src={VerificationBadge} className="verified-badge" title="Verified" alt="Verified" />}
             </div>
             <div className="sidebar-user-email">{user.email}</div>
           </div>

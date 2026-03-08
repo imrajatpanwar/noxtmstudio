@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import VerificationBadge from './image/Verification.svg';
 import { useParams, Link, NavLink } from 'react-router-dom';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
@@ -239,7 +240,7 @@ function BlogPost() {
                         <div className="sidebar-user-info">
                             <div className="sidebar-user-name">
                                 {currentVisitor.name}
-                                {currentVisitor.verified && <span className="verified-badge" title="Verified">✓</span>}
+                                {currentVisitor.verified && <img src={VerificationBadge} className="verified-badge" title="Verified" alt="Verified" />}
                             </div>
                             <div className="sidebar-user-email">{currentVisitor.email}</div>
                         </div>
@@ -279,7 +280,7 @@ function BlogPost() {
                     <div className="blogpost-author-info">
                         <div className="blogpost-author-name">
                             {post.author}
-                            {post.authorVerified && <span className="verified-badge" title="Verified">✓</span>}
+                            {post.authorVerified && <img src={VerificationBadge} className="verified-badge" title="Verified" alt="Verified" />}
                         </div>
                         <p className="blogpost-author-bio">{post.authorBio || ''}</p>
                         <div className="blogpost-author-meta">

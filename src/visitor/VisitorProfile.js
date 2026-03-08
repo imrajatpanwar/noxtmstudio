@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
+import VerificationBadge from '../pages/image/Verification.svg';
 import './Visitor.css';
 
 function VisitorProfile() {
@@ -122,7 +123,7 @@ function VisitorProfile() {
             <div className="visitor-profile-info">
               <h1>
                 {user.name}
-                {user.verified && <span className="verified-badge" title="Verified">✓</span>}
+                {user.verified && <img src={VerificationBadge} className="verified-badge" title="Verified" alt="Verified" />}
               </h1>
               <div className="profile-email">{user.email}</div>
               {user.bio && <div className="profile-bio">{user.bio}</div>}

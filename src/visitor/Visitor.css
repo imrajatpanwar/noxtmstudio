@@ -1571,16 +1571,9 @@
 /* ─── VERIFIED BADGE ──────────────────────────── */
 /* ══════════════════════════════════════════════ */
 .verified-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
     width: 18px;
     height: 18px;
-    border-radius: 50%;
-    background: #2563EB;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
     margin-left: 6px;
     vertical-align: middle;
     line-height: 1;

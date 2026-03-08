@@ -329,7 +329,7 @@ function VisitorWriteBlog() {
             <div className="visitor-write-success">
                 <div className="visitor-write-success-icon">✅</div>
                 <h2>{editId ? 'Blog Updated Successfully!' : 'Blog Submitted Successfully!'}</h2>
-                <p>{editId ? 'Your changes have been saved.' : 'Your blog post has been submitted for review.'} You'll be redirected shortly.</p>
+                <p>{editId ? 'Your changes have been saved and the post has been sent for review.' : 'Your blog post has been submitted for review.'} You'll be redirected shortly.</p>
             </div>
         );
     }

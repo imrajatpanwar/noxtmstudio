@@ -24,7 +24,7 @@ function Dashboard() {
     const loadData = async () => {
       try {
         const data = await api.getDashboardStats();
-        setStats(data);
+        setStats(prev => ({ ...prev, ...data }));
       } catch (err) { /* ignore */ }
       try {
         const logos = await api.getTrustLogos();
@@ -116,7 +116,7 @@ function Dashboard() {
         <div className="admin-stat-card">
           <div className="admin-stat-card-header">
             <div>
-              <div className="admin-stat-number">{stats.totalViews.toLocaleString()}</div>
+              <div className="admin-stat-number">{(stats.totalViews || 0).toLocaleString()}</div>
               <div className="admin-stat-label">Total Page Views</div>
             </div>
             <div className="admin-stat-card-icon purple">👁️</div>

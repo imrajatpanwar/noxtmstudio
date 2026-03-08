@@ -1024,14 +1024,26 @@ export default function Home() {
         fetchCaseStudies();
     }, []);
 
-    /* Blog posts from admin (API) */
+    /* Blog posts from admin + approved visitor blogs */
     const [adminBlogs, setAdminBlogs] = useState([]);
     useEffect(() => {
         const fetchBlogs = async () => {
             try {
-                const data = await api.getBlogs();
-                const published = data.filter(b => b.status === 'Published');
-                setAdminBlogs(published);
+                const [adminData, visitorData] = await Promise.all([
+                    api.getBlogs(),
+                    api.getVisitorBlogs({ status: 'approved' }).catch(() => []),
+                ]);
+                const published = adminData.filter(b => b.status === 'Published').map(b => ({
+                    ...b,
+                    slug: b.slug,
+                    isVisitor: false,
+                }));
+                const approved = (Array.isArray(visitorData) ? visitorData : []).map(b => ({
+                    ...b,
+                    slug: `visitor-${b._id}`,
+                    isVisitor: true,
+                }));
+                setAdminBlogs([...published, ...approved]);
             } catch { }
         };
         fetchBlogs();
@@ -1434,7 +1446,7 @@ export default function Home() {
                             <span className="blog-chip-thumb" style={{ background: item.featureImage ? `url(${item.featureImage}) center/cover no-repeat` : '#17402A' }} />
                             <div className="blog-chip-text">
                                 <span className="blog-chip-title">{item.title}</span>
-                                <span className="blog-chip-source">{item.category || 'From our blog'}</span>
+                                <span className="blog-chip-source">{item.isVisitor ? 'Community' : (item.category || 'From our blog')}</span>
                             </div>
                         </a>
                     ))}

@@ -115,6 +115,8 @@ function BlogPost() {
                         comments: data.comments?.length || 0,
                         isVisitorBlog: true,
                         visitorBlogContent: data.content,
+                        authorBio: data.visitorBio || '',
+                        featureImage: data.featureImage || '',
                     });
                     // Increment view count
                     api.incrementBlogView(realId).catch(() => {});
@@ -279,7 +281,7 @@ function BlogPost() {
                             {post.author}
                             {post.authorVerified && <span className="verified-badge" title="Verified">✓</span>}
                         </div>
-                        <p className="blogpost-author-bio">Digital marketing expert sharing insights on brands, creativity, and growth strategies in the Indian market.</p>
+                        <p className="blogpost-author-bio">{post.authorBio || ''}</p>
                         <div className="blogpost-author-meta">
                             <span>{post.publication}</span>
                             <span className="meta-dot">·</span>
@@ -293,16 +295,22 @@ function BlogPost() {
                     <button className="blogpost-follow-btn">Follow</button>
                 </div>
 
-                {/* Featured Color Block */}
-                <div className="blogpost-featured" style={{ backgroundColor: post.thumbnailColor }}>
-                    <span className="blogpost-featured-icon">
-                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                            <rect x="8" y="8" width="48" height="48" rx="8" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
-                            <circle cx="24" cy="24" r="6" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
-                            <path d="M8 44l14-14 10 10 8-8 16 16" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                    </span>
-                </div>
+                {/* Featured Image */}
+                {post.featureImage ? (
+                    <div className="blogpost-featured blogpost-featured--image">
+                        <img src={post.featureImage} alt={post.title} className="blogpost-featured-img" />
+                    </div>
+                ) : (
+                    <div className="blogpost-featured" style={{ backgroundColor: post.thumbnailColor }}>
+                        <span className="blogpost-featured-icon">
+                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                                <rect x="8" y="8" width="48" height="48" rx="8" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
+                                <circle cx="24" cy="24" r="6" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
+                                <path d="M8 44l14-14 10 10 8-8 16 16" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </span>
+                    </div>
+                )}
 
                 {/* Article Body */}
                 <div className="blogpost-body">

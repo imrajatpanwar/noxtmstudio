@@ -148,6 +148,12 @@ function VisitorLayout() {
 
       {/* Main content */}
       <main className="visitor-content">
+        {user.suspended && (
+          <div className="visitor-suspended-banner">
+            <span>🚫 Your account has been suspended. You cannot write or publish blog posts.</span>
+            <span>Contact <a href="mailto:mail@noxtmstudio.com">mail@noxtmstudio.com</a> to appeal.</span>
+          </div>
+        )}
         <Outlet />
       </main>
     </div>

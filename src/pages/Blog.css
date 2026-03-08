@@ -371,6 +371,13 @@
     justify-content: center;
     margin-top: 24px;
     transition: transform var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+    overflow: hidden;
+}
+
+.blog-card-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .blog-card:hover .blog-card-thumbnail {

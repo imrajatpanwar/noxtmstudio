@@ -158,6 +158,18 @@
     overflow: hidden;
 }
 
+.blogpost-featured--image {
+    height: auto;
+    max-height: 480px;
+}
+
+.blogpost-featured-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
 .blogpost-featured-icon {
     opacity: 0.3;
 }

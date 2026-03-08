@@ -14,9 +14,10 @@ function VisitorProfile() {
     const fetchProfile = async () => {
       try {
         const u = await api.visitorProfile();
-        setUser(u);
-        setForm({ name: u.name, bio: u.bio || '', avatar: u.avatar || '👤' });
-        localStorage.setItem('noxtm_visitor_user', JSON.stringify(u));
+        const normalized = { ...u, id: u._id || u.id };
+        setUser(normalized);
+        setForm({ name: normalized.name, bio: normalized.bio || '', avatar: normalized.avatar || '👤' });
+        localStorage.setItem('noxtm_visitor_user', JSON.stringify(normalized));
       } catch (err) {
         console.error('Failed to load profile:', err);
       }
@@ -33,8 +34,9 @@ function VisitorProfile() {
         bio: form.bio.trim(),
         avatar: form.avatar || '👤',
       });
-      localStorage.setItem('noxtm_visitor_user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
+      const normalized = { ...updatedUser, id: updatedUser._id || updatedUser.id };
+      localStorage.setItem('noxtm_visitor_user', JSON.stringify(normalized));
+      setUser(normalized);
       setEditing(false);
       setSuccess('Profile updated successfully.');
       setTimeout(() => setSuccess(''), 3000);
@@ -53,7 +55,7 @@ function VisitorProfile() {
     setUploading(true);
     try {
       const result = await api.uploadProfileImage(file);
-      const updatedUser = { ...user, profileImage: result.url };
+      const updatedUser = { ...user, profileImage: result.url, id: user._id || user.id };
       setUser(updatedUser);
       localStorage.setItem('noxtm_visitor_user', JSON.stringify(updatedUser));
       setSuccess('Profile picture updated!');

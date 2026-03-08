@@ -178,6 +178,7 @@ const visitorSchema = new mongoose.Schema({
   avatar: { type: String, default: '👤' },
   profileImage: { type: String, default: '' },
   verified: { type: Boolean, default: false },
+  suspended: { type: Boolean, default: false },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Visitor' }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Visitor' }],
 }, { timestamps: true });
@@ -269,7 +270,7 @@ app.post('/api/visitors/login', async (req, res) => {
     const valid = await bcrypt.compare(password, visitor.password);
     if (!valid) return res.status(401).json({ error: 'Invalid email or password.' });
     const token = jwt.sign({ role: 'visitor', id: visitor._id, email: visitor.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar, profileImage: visitor.profileImage, verified: visitor.verified } });
+    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar, profileImage: visitor.profileImage, verified: visitor.verified, suspended: visitor.suspended } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -538,14 +539,15 @@ app.get('/api/visitor-blogs', async (req, res) => {
     const blogs = await VisitorBlog.find(filter).sort({ createdAt: -1 });
     // Attach verification status from visitor
     const visitorIds = [...new Set(blogs.map(b => b.visitorId.toString()))];
-    const visitors = await Visitor.find({ _id: { $in: visitorIds } }).select('verified profileImage');
+    const visitors = await Visitor.find({ _id: { $in: visitorIds } }).select('verified profileImage bio');
     const visitorMap = {};
-    visitors.forEach(v => { visitorMap[v._id.toString()] = { verified: v.verified, profileImage: v.profileImage }; });
+    visitors.forEach(v => { visitorMap[v._id.toString()] = { verified: v.verified, profileImage: v.profileImage, bio: v.bio }; });
     const enriched = blogs.map(b => {
       const obj = b.toObject();
       const vInfo = visitorMap[b.visitorId.toString()] || {};
       obj.visitorVerified = vInfo.verified || false;
       obj.visitorProfileImage = vInfo.profileImage || '';
+      obj.visitorBio = vInfo.bio || '';
       return obj;
     });
     res.json(enriched);
@@ -556,10 +558,11 @@ app.get('/api/visitor-blogs/:id', async (req, res) => {
   try {
     const blog = await VisitorBlog.findById(req.params.id);
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
-    const visitor = await Visitor.findById(blog.visitorId).select('verified profileImage');
+    const visitor = await Visitor.findById(blog.visitorId).select('verified profileImage bio');
     const obj = blog.toObject();
     obj.visitorVerified = visitor?.verified || false;
     obj.visitorProfileImage = visitor?.profileImage || '';
+    obj.visitorBio = visitor?.bio || '';
     res.json(obj);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -567,6 +570,7 @@ app.get('/api/visitor-blogs/:id', async (req, res) => {
 app.post('/api/visitor-blogs', visitorAuth, async (req, res) => {
   try {
     const visitor = await Visitor.findById(req.visitor.id);
+    if (visitor.suspended) return res.status(403).json({ error: 'Your account has been suspended. You cannot create blog posts. Contact mail@noxtmstudio.com to appeal.' });
     const blog = await VisitorBlog.create({
       ...req.body,
       visitorId: req.visitor.id,
@@ -667,6 +671,7 @@ app.get('/api/admin/visitors', adminAuth, async (req, res) => {
     // Enrich with blog stats
     const visitorIds = visitors.map(v => v._id);
     const blogs = await VisitorBlog.find({ visitorId: { $in: visitorIds } });
+    // Also get follower/following counts
     const statsMap = {};
     blogs.forEach(b => {
       const vid = b.visitorId.toString();
@@ -693,6 +698,16 @@ app.put('/api/admin/visitors/:id/verify', adminAuth, async (req, res) => {
     visitor.verified = !visitor.verified;
     await visitor.save();
     res.json({ verified: visitor.verified, name: visitor.name });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/admin/visitors/:id/suspend', adminAuth, async (req, res) => {
+  try {
+    const visitor = await Visitor.findById(req.params.id);
+    if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
+    visitor.suspended = !visitor.suspended;
+    await visitor.save();
+    res.json({ suspended: visitor.suspended, name: visitor.name });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

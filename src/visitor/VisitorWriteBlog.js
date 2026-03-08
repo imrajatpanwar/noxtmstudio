@@ -120,22 +120,50 @@ function TextBlock({ content, onChange }) {
 
 function ImageBlock({ block, onChange }) {
     const [preview, setPreview] = useState(block.url || '');
+    const [uploading, setUploading] = useState(false);
+    const fileRef = useRef(null);
 
-    const handleUrlChange = (url) => {
-        onChange({ url });
-        setPreview(url);
+    const handleFileUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { alert('File size must be under 5MB'); return; }
+        setUploading(true);
+        try {
+            const result = await api.uploadBlogImage(file);
+            onChange({ url: result.url });
+            setPreview(result.url);
+        } catch (err) {
+            alert(err.message || 'Upload failed');
+        } finally {
+            setUploading(false);
+            if (fileRef.current) fileRef.current.value = '';
+        }
     };
 
     return (
         <div className="image-block">
             <div className="image-block-fields">
                 <div className="image-block-field">
-                    <label>Image URL</label>
+                    <label>Image</label>
+                    {preview ? (
+                        <div className="image-block-preview">
+                            <img src={preview} alt={block.alt || 'Preview'} onError={(e) => { e.target.style.display = 'none'; }} />
+                            <button type="button" className="feature-remove-btn" onClick={() => { onChange({ url: '' }); setPreview(''); }}>✕ Remove</button>
+                            {block.credit && <span className="image-block-credit">{block.credit}</span>}
+                        </div>
+                    ) : (
+                        <div className="feature-upload-placeholder" onClick={() => fileRef.current?.click()}>
+                            <span className="feature-upload-icon">🖼️</span>
+                            <span>{uploading ? 'Uploading...' : 'Click to upload image'}</span>
+                            <span className="feature-upload-hint">JPEG, PNG, GIF, WebP · Max 5MB</span>
+                        </div>
+                    )}
                     <input
-                        type="text"
-                        placeholder="https://example.com/image.jpg"
-                        value={block.url}
-                        onChange={(e) => handleUrlChange(e.target.value)}
+                        ref={fileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        style={{ display: 'none' }}
+                        onChange={handleFileUpload}
                     />
                 </div>
                 <div className="image-block-field">
@@ -157,12 +185,6 @@ function ImageBlock({ block, onChange }) {
                     />
                 </div>
             </div>
-            {preview && (
-                <div className="image-block-preview">
-                    <img src={preview} alt={block.alt || 'Preview'} onError={(e) => { e.target.style.display = 'none'; }} />
-                    {block.credit && <span className="image-block-credit">{block.credit}</span>}
-                </div>
-            )}
         </div>
     );
 }
@@ -314,6 +336,12 @@ function VisitorWriteBlog() {
 
     return (
         <div className="visitor-write-page">
+            {visitor?.suspended && (
+                <div className="visitor-suspended-banner">
+                    <span>🚫 Your account has been suspended. You cannot write or publish blog posts.</span>
+                    <span>Contact <a href="mailto:mail@noxtmstudio.com">mail@noxtmstudio.com</a> to appeal.</span>
+                </div>
+            )}
             <div className="visitor-write-header">
                 <h1>{editId ? 'Edit Blog Post' : 'Write a Blog Post'}</h1>
                 <p>Share your knowledge with the community</p>

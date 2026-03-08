@@ -91,6 +91,7 @@ const api = {
   // Admin Visitor Management
   getVisitors: () => request('/admin/visitors', { headers: authHeaders(true) }),
   toggleVisitorVerification: (id) => request(`/admin/visitors/${id}/verify`, { method: 'PUT', headers: authHeaders(true) }),
+  toggleVisitorSuspension: (id) => request(`/admin/visitors/${id}/suspend`, { method: 'PUT', headers: authHeaders(true) }),
 
   // View Tracking
   incrementBlogView: (id) => request(`/visitor-blogs/${id}/view`, { method: 'PUT' }),

@@ -71,15 +71,21 @@ function BlogCard({ post }) {
                     </div>
                 </div>
             </div>
-            <div className="blog-card-thumbnail" style={{ backgroundColor: post.thumbnailColor }}>
-                <span className="blog-card-thumb-icon">
-                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                        <rect x="4" y="4" width="20" height="20" rx="4" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
-                        <circle cx="11" cy="11" r="3" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
-                        <path d="M4 19l6-6 4 4 4-4 6 6" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                </span>
-            </div>
+            {post.featureImage ? (
+                <div className="blog-card-thumbnail">
+                    <img src={post.featureImage} alt={post.title} className="blog-card-thumb-img" />
+                </div>
+            ) : (
+                <div className="blog-card-thumbnail" style={{ backgroundColor: post.thumbnailColor }}>
+                    <span className="blog-card-thumb-icon">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                            <rect x="4" y="4" width="20" height="20" rx="4" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
+                            <circle cx="11" cy="11" r="3" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
+                            <path d="M4 19l6-6 4 4 4-4 6 6" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                    </span>
+                </div>
+            )}
         </article>
         </Link>
     );
@@ -139,6 +145,7 @@ function Blog() {
                     title: blog.title,
                     description: blog.excerpt,
                     thumbnailColor: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
+                    featureImage: blog.featureImage || '',
                     date: new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
                     readTime: blog.readTime || '5 min read',
                     claps: blog.claps || 0,
@@ -147,6 +154,7 @@ function Blog() {
                     topics: blog.topics || [],
                     isVisitorBlog: true,
                     visitorBlogId: blog._id,
+                    authorBio: blog.visitorBio || '',
                 }));
                 setAllPosts([...published, ...approved]);
             } catch (err) {

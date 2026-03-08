@@ -39,6 +39,13 @@ function VisitorBlogManager() {
         } catch (err) { /* ignore */ }
     };
 
+    const handleSuspendToggle = async (visitorId) => {
+        try {
+            const result = await api.toggleVisitorSuspension(visitorId);
+            setVisitors(prev => prev.map(v => v._id === visitorId ? { ...v, suspended: result.suspended } : v));
+        } catch (err) { /* ignore */ }
+    };
+
     const filteredBlogs = blogs
         .filter(b => filter === 'all' || b.status === filter)
         .filter(b => b.title.toLowerCase().includes(search.toLowerCase()));
@@ -89,8 +96,8 @@ function VisitorBlogManager() {
                             {visitors.map(v => (
                                 <div key={v._id} style={{
                                     display: 'flex', alignItems: 'center', gap: '16px', padding: '16px',
-                                    background: 'var(--bg-secondary, #F9F7F4)', borderRadius: '10px',
-                                    border: '1px solid var(--border, #E0E0E0)', flexWrap: 'wrap'
+                                    background: v.suspended ? '#FEF2F2' : 'var(--bg-secondary, #F9F7F4)', borderRadius: '10px',
+                                    border: v.suspended ? '1px solid #FCA5A5' : '1px solid var(--border, #E0E0E0)', flexWrap: 'wrap'
                                 }}>
                                     {/* Avatar */}
                                     <div style={{ flexShrink: 0 }}>
@@ -103,17 +110,25 @@ function VisitorBlogManager() {
 
                                     {/* Info */}
                                     <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px', flexWrap: 'wrap' }}>
                                             <strong style={{ fontSize: '0.95rem' }}>{v.name}</strong>
                                             {v.verified && <span style={{ color: '#2563EB', fontWeight: 700, fontSize: '0.85rem' }}>✓</span>}
                                             <span className="admin-badge" style={{ background: v.verified ? '#DCFCE7' : '#FEE2E2', color: v.verified ? '#166534' : '#991B1B', fontSize: '0.7rem', padding: '2px 8px' }}>
                                                 {v.verified ? 'Verified' : 'Unverified'}
                                             </span>
+                                            {v.suspended && (
+                                                <span className="admin-badge" style={{ background: '#FEE2E2', color: '#991B1B', fontSize: '0.7rem', padding: '2px 8px' }}>
+                                                    🚫 Suspended
+                                                </span>
+                                            )}
                                         </div>
                                         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted, #7A7A7A)' }}>
                                             {v.email} · Joined {new Date(v.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </div>
                                         {v.bio && <div style={{ fontSize: '0.82rem', color: 'var(--text-muted, #999)', marginTop: '4px' }}>{v.bio}</div>}
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted, #aaa)', marginTop: '4px' }}>
+                                            Followers: {v.followers?.length || 0} · Following: {v.following?.length || 0}
+                                        </div>
                                     </div>
 
                                     {/* Stats */}
@@ -140,13 +155,19 @@ function VisitorBlogManager() {
                                         </div>
                                     </div>
 
-                                    {/* Action */}
-                                    <div style={{ flexShrink: 0 }}>
+                                    {/* Actions */}
+                                    <div style={{ flexShrink: 0, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                         <button
                                             className={`admin-btn admin-btn-sm ${v.verified ? 'admin-btn-danger' : 'admin-btn-accent'}`}
                                             onClick={() => handleVerifyToggle(v._id)}
                                         >
                                             {v.verified ? 'Remove Badge' : '✓ Verify'}
+                                        </button>
+                                        <button
+                                            className={`admin-btn admin-btn-sm ${v.suspended ? 'admin-btn-accent' : 'admin-btn-danger'}`}
+                                            onClick={() => handleSuspendToggle(v._id)}
+                                        >
+                                            {v.suspended ? 'Unsuspend' : '🚫 Suspend'}
                                         </button>
                                     </div>
                                 </div>

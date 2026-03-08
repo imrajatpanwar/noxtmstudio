@@ -210,7 +210,6 @@
   margin-left: var(--sidebar-width);
   flex: 1;
   padding: 40px 48px;
-  max-width: 900px;
 }
 
 /* ---- Auth Pages (Login / Register) ---- */
@@ -1539,6 +1538,212 @@
     font-size: 0.8rem;
     color: #7A7A7A;
     margin-top: 4px;
+}
+
+/* ══════════════════════════════════════════════ */
+/* ─── WRITE BLOG PAGE ─────────────────────────── */
+/* ══════════════════════════════════════════════ */
+.visitor-write-page {
+    max-width: 780px;
+}
+
+.visitor-write-header {
+    margin-bottom: 28px;
+}
+
+.visitor-write-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: -0.5px;
+}
+
+.visitor-write-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.visitor-write-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.visitor-write-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.visitor-write-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.visitor-write-title-input {
+    font-size: 22px;
+    font-weight: 600;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.visitor-write-title-input:focus {
+    border-color: var(--accent);
+}
+
+.visitor-write-title-input::placeholder {
+    color: #B0B0B0;
+}
+
+.visitor-write-input {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.visitor-write-input:focus {
+    border-color: var(--accent);
+}
+
+.visitor-write-excerpt-input {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 64px;
+    transition: border-color 0.2s;
+}
+
+.visitor-write-excerpt-input:focus {
+    border-color: var(--accent);
+}
+
+.visitor-write-readtime {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.visitor-write-topics-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.visitor-write-topic-pill {
+    padding: 6px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.visitor-write-topic-pill:hover {
+    border-color: var(--accent);
+}
+
+.visitor-write-topic-pill.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.visitor-write-topic-count {
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-left: 6px;
+    font-size: 13px;
+}
+
+.visitor-write-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 8px;
+}
+
+.visitor-write-submit-btn {
+    padding: 10px 28px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.visitor-write-submit-btn:hover {
+    background: var(--accent-hover);
+}
+
+.visitor-write-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.visitor-write-cancel-btn {
+    padding: 10px 28px;
+    background: none;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.visitor-write-cancel-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.visitor-write-success {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.visitor-write-success-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.visitor-write-success h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.visitor-write-success p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
 }
 
 /* ══════════════════════════════════════════════ */

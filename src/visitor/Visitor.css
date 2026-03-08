@@ -1572,10 +1572,11 @@
 /* ══════════════════════════════════════════════ */
 .verified-badge {
     display: inline-block;
-    width: 18px;
-    height: 18px;
-    margin-left: 6px;
+    height: 14px;
+    line-height: 1;
+    margin-left: 4px;
     vertical-align: middle;
+    width: 14px;
     line-height: 1;
 }
 

@@ -87,6 +87,13 @@ const api = {
 
   // Visitor Stats
   getVisitorStats: () => request('/visitor-stats', { headers: authHeaders() }),
+
+  // Admin Visitor Management
+  getVisitors: () => request('/admin/visitors', { headers: authHeaders(true) }),
+  toggleVisitorVerification: (id) => request(`/admin/visitors/${id}/verify`, { method: 'PUT', headers: authHeaders(true) }),
+
+  // View Tracking
+  incrementBlogView: (id) => request(`/visitor-blogs/${id}/view`, { method: 'PUT' }),
 };
 
 export default api;

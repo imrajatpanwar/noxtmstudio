@@ -23,9 +23,14 @@ function BlogCard({ post }) {
         <article className="blog-card">
             <div className="blog-card-content">
                 <div className="blog-card-meta-top">
-                    <span className="blog-card-avatar">{post.authorAvatar}</span>
+                    {post.authorProfileImage ? (
+                        <img src={post.authorProfileImage} alt={post.author} className="blog-card-avatar-img" />
+                    ) : (
+                        <span className="blog-card-avatar">{post.authorAvatar}</span>
+                    )}
                     <span className="blog-card-byline">
                         In <strong>{post.publication}</strong> by {post.author}
+                        {post.authorVerified && <span className="verified-badge" title="Verified">✓</span>}
                     </span>
                 </div>
                 <h2 className="blog-card-title">{post.title}</h2>
@@ -126,7 +131,9 @@ function Blog() {
                 const approved = (Array.isArray(visitorBlogs) ? visitorBlogs : []).map(blog => ({
                     _id: `visitor-${blog._id}`,
                     author: blog.visitorName,
-                    authorAvatar: blog.visitorAvatar || '👤',
+                    authorAvatar: blog.visitorProfileImage ? null : (blog.visitorAvatar || '👤'),
+                    authorProfileImage: blog.visitorProfileImage || '',
+                    authorVerified: blog.visitorVerified || false,
                     publication: 'Community',
                     title: blog.title,
                     description: blog.excerpt,
@@ -171,33 +178,37 @@ function Blog() {
                             Home
                         </NavLink>
                         <NavLink to="/visitor/dashboard">
-                            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
-                            Library
+                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+                            Dashboard
+                        </NavLink>
+                        <NavLink to="/visitor/write">
+                            <svg viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                            Write
+                        </NavLink>
+                        <NavLink to="/visitor/my-blogs">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+                            My Blogs
                         </NavLink>
                         <NavLink to="/visitor/profile">
                             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                             Profile
                         </NavLink>
-                        <NavLink to="/visitor/my-blogs">
-                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
-                            Stories
-                        </NavLink>
                         <NavLink to="/visitor/stats">
                             <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
                             Stats
                         </NavLink>
-                        <div className="sidebar-divider" />
-                        <div className="sidebar-section-label">Following</div>
-                        <div className="sidebar-section-text">
-                            Find writers and publications to follow.
-                            <br />
-                            <Link to="/blog">See suggestions</Link>
-                        </div>
                     </nav>
                     <div className="sidebar-user">
-                        <div className="sidebar-user-avatar">{visitorUser.avatar || '👤'}</div>
+                        {visitorUser.profileImage ? (
+                            <img src={visitorUser.profileImage} alt={visitorUser.name} className="sidebar-user-avatar-img" />
+                        ) : (
+                            <div className="sidebar-user-avatar">{visitorUser.avatar || '👤'}</div>
+                        )}
                         <div className="sidebar-user-info">
-                            <div className="sidebar-user-name">{visitorUser.name}</div>
+                            <div className="sidebar-user-name">
+                                {visitorUser.name}
+                                {visitorUser.verified && <span className="verified-badge" title="Verified">✓</span>}
+                            </div>
                             <div className="sidebar-user-email">{visitorUser.email}</div>
                         </div>
                         <button className="sidebar-logout-btn" onClick={() => { localStorage.removeItem('noxtm_visitor_token'); localStorage.removeItem('noxtm_visitor_user'); setVisitorUser(null); }} title="Sign out">

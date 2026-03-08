@@ -25,6 +25,52 @@ function generateContent(post) {
     return paragraphs;
 }
 
+/* ── Render visitor blog content (supports block-based JSON or plain text) ── */
+function VisitorBlogContent({ content }) {
+    if (!content) return null;
+    let blocks;
+    try {
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) blocks = parsed;
+    } catch {}
+    
+    if (!blocks) {
+        // Plain text fallback
+        return content.split('\n\n').map((para, i) => (
+            <p key={i}>{para}</p>
+        ));
+    }
+
+    return blocks.map((block, i) => {
+        if (block.type === 'image') {
+            return (
+                <figure key={i} className="blogpost-inline-image">
+                    {block.url && <img src={block.url} alt={block.alt || ''} />}
+                    {(block.credit || block.alt) && (
+                        <figcaption>
+                            {block.credit || block.alt}
+                        </figcaption>
+                    )}
+                </figure>
+            );
+        }
+        // Text block — render with basic markdown-like formatting
+        return (block.content || '').split('\n\n').map((para, j) => {
+            if (para.startsWith('## ')) return <h2 key={`${i}-${j}`}>{para.slice(3)}</h2>;
+            if (para.startsWith('> ')) return <blockquote key={`${i}-${j}`}>{para.slice(2)}</blockquote>;
+            return <p key={`${i}-${j}`} dangerouslySetInnerHTML={{ __html: formatMarkdown(para) }} />;
+        });
+    });
+}
+
+function formatMarkdown(text) {
+    return text
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+}
+
 /* ── Main BlogPost Component ── */
 function BlogPost() {
     const { id } = useParams();
@@ -47,8 +93,34 @@ function BlogPost() {
         const fetchBlog = async () => {
             setLoading(true);
             try {
-                const data = await api.getBlog(id);
-                setPost(data);
+                // Check if it's a visitor blog (id starts with "visitor-")
+                if (id.startsWith('visitor-')) {
+                    const realId = id.replace('visitor-', '');
+                    const data = await api.getVisitorBlog(realId);
+                    setPost({
+                        ...data,
+                        _id: id,
+                        author: data.visitorName,
+                        authorAvatar: data.visitorProfileImage ? null : (data.visitorAvatar || '👤'),
+                        authorProfileImage: data.visitorProfileImage || '',
+                        authorVerified: data.visitorVerified || false,
+                        publication: 'Community',
+                        title: data.title,
+                        description: data.excerpt,
+                        thumbnailColor: '#6366f1',
+                        date: new Date(data.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                        readTime: data.readTime || '5 min read',
+                        claps: data.claps || 0,
+                        comments: data.comments?.length || 0,
+                        isVisitorBlog: true,
+                        visitorBlogContent: data.content,
+                    });
+                    // Increment view count
+                    api.incrementBlogView(realId).catch(() => {});
+                } else {
+                    const data = await api.getBlog(id);
+                    setPost(data);
+                }
             } catch (err) {
                 console.error('Failed to fetch blog:', err);
                 setPost(null);
@@ -169,33 +241,37 @@ function BlogPost() {
                             Home
                         </NavLink>
                         <NavLink to="/visitor/dashboard">
-                            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
-                            Library
+                            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+                            Dashboard
+                        </NavLink>
+                        <NavLink to="/visitor/write">
+                            <svg viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                            Write
+                        </NavLink>
+                        <NavLink to="/visitor/my-blogs">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+                            My Blogs
                         </NavLink>
                         <NavLink to="/visitor/profile">
                             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                             Profile
                         </NavLink>
-                        <NavLink to="/visitor/my-blogs">
-                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
-                            Stories
-                        </NavLink>
                         <NavLink to="/visitor/stats">
                             <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
                             Stats
                         </NavLink>
-                        <div className="sidebar-divider" />
-                        <div className="sidebar-section-label">Following</div>
-                        <div className="sidebar-section-text">
-                            Find writers and publications to follow.
-                            <br />
-                            <Link to="/blog">See suggestions</Link>
-                        </div>
                     </nav>
                     <div className="sidebar-user">
-                        <div className="sidebar-user-avatar">{currentVisitor.avatar || '👤'}</div>
+                        {currentVisitor.profileImage ? (
+                            <img src={currentVisitor.profileImage} alt={currentVisitor.name} className="sidebar-user-avatar-img" />
+                        ) : (
+                            <div className="sidebar-user-avatar">{currentVisitor.avatar || '👤'}</div>
+                        )}
                         <div className="sidebar-user-info">
-                            <div className="sidebar-user-name">{currentVisitor.name}</div>
+                            <div className="sidebar-user-name">
+                                {currentVisitor.name}
+                                {currentVisitor.verified && <span className="verified-badge" title="Verified">✓</span>}
+                            </div>
                             <div className="sidebar-user-email">{currentVisitor.email}</div>
                         </div>
                         <button className="sidebar-logout-btn" onClick={() => { localStorage.removeItem('noxtm_visitor_token'); localStorage.removeItem('noxtm_visitor_user'); window.location.reload(); }} title="Sign out">
@@ -251,9 +327,16 @@ function BlogPost() {
 
                 {/* Author Info */}
                 <div className="blogpost-author-row blogpost-author-row--enhanced">
-                    <div className="blogpost-author-avatar">{post.authorAvatar}</div>
+                    {post.authorProfileImage ? (
+                        <img src={post.authorProfileImage} alt={post.author} className="blogpost-author-avatar-img" />
+                    ) : (
+                        <div className="blogpost-author-avatar">{post.authorAvatar}</div>
+                    )}
                     <div className="blogpost-author-info">
-                        <div className="blogpost-author-name">{post.author}</div>
+                        <div className="blogpost-author-name">
+                            {post.author}
+                            {post.authorVerified && <span className="verified-badge" title="Verified">✓</span>}
+                        </div>
                         <p className="blogpost-author-bio">Digital marketing expert sharing insights on brands, creativity, and growth strategies in the Indian market.</p>
                         <div className="blogpost-author-meta">
                             <span>{post.publication}</span>
@@ -281,9 +364,13 @@ function BlogPost() {
 
                 {/* Article Body */}
                 <div className="blogpost-body">
-                    {bodyParagraphs.map((para, i) => (
-                        <p key={i}>{para}</p>
-                    ))}
+                    {post.isVisitorBlog ? (
+                        <VisitorBlogContent content={post.visitorBlogContent} />
+                    ) : (
+                        bodyParagraphs.map((para, i) => (
+                            <p key={i}>{para}</p>
+                        ))
+                    )}
                 </div>
 
                 {/* Claps & Actions */}

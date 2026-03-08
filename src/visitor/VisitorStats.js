@@ -37,7 +37,7 @@ function VisitorStats() {
     <div>
       <div className="visitor-page-header">
         <h1>Stats</h1>
-        <p>See how your stories are performing.</p>
+        <p>See how your blog posts are performing.</p>
       </div>
 
       {/* Overview */}
@@ -58,11 +58,11 @@ function VisitorStats() {
 
       {/* Blog-by-blog table */}
       <div className="visitor-card">
-        <h2>Story Performance</h2>
+        <h2>Blog Post Performance</h2>
 
         {blogs.length === 0 ? (
           <div className="visitor-empty">
-            <p>No stories yet. Write your first story to see stats here.</p>
+            <p>No blog posts yet. Write your first blog post to see stats here.</p>
           </div>
         ) : (
           <div className="visitor-table-wrap">

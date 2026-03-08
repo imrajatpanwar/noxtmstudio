@@ -39,7 +39,7 @@ function VisitorMyBlogs() {
         .filter(b => !searchQuery || b.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const handleDelete = async (blogId) => {
-        if (!window.confirm('Are you sure you want to delete this story?')) return;
+        if (!window.confirm('Are you sure you want to delete this blog post?')) return;
         try {
             await api.deleteVisitorBlog(blogId);
             if (visitor) loadBlogs(visitor.id);
@@ -64,15 +64,15 @@ function VisitorMyBlogs() {
             {/* Page Header */}
             <div className="stories-header">
                 <div className="stories-header-left">
-                    <h1 className="stories-title">Your Stories</h1>
-                    <p className="stories-subtitle">Manage and track all your published and draft stories</p>
+                    <h1 className="stories-title">My Blog Posts</h1>
+                    <p className="stories-subtitle">Manage and track all your published and draft blog posts</p>
                 </div>
                 <button className="stories-write-btn" onClick={() => navigate('/visitor/write')}>
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    Write a story
+                    Write a blog post
                 </button>
             </div>
 
@@ -105,7 +105,7 @@ function VisitorMyBlogs() {
                     </svg>
                     <input
                         type="text"
-                        placeholder="Search stories..."
+                        placeholder="Search blog posts..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         className="stories-search-input"
@@ -136,15 +136,15 @@ function VisitorMyBlogs() {
                             <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
                     </div>
-                    <h3 className="stories-empty-title">{searchQuery ? 'No matching stories' : 'No stories yet'}</h3>
+                    <h3 className="stories-empty-title">{searchQuery ? 'No matching blog posts' : 'No blog posts yet'}</h3>
                     <p className="stories-empty-text">
                         {searchQuery 
                             ? 'Try a different search term.' 
-                            : 'Start writing your first story and share your knowledge with the community.'}
+                            : 'Start writing your first blog post and share your knowledge with the community.'}
                     </p>
                     {!searchQuery && (
                         <button className="stories-write-btn" onClick={() => navigate('/visitor/write')}>
-                            Write your first story
+                            Write your first blog post
                         </button>
                     )}
                 </div>

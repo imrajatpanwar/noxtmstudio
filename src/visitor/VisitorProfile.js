@@ -5,7 +5,7 @@ import './Visitor.css';
 function VisitorProfile() {
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: '', bio: '', avatar: '' });
+  const [form, setForm] = useState({ name: '', bio: '', avatar: '', profileImage: '' });
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
@@ -13,7 +13,7 @@ function VisitorProfile() {
       try {
         const u = await api.visitorProfile();
         setUser(u);
-        setForm({ name: u.name, bio: u.bio || '', avatar: u.avatar || '👤' });
+        setForm({ name: u.name, bio: u.bio || '', avatar: u.avatar || '👤', profileImage: u.profileImage || '' });
         localStorage.setItem('noxtm_visitor_user', JSON.stringify(u));
       } catch (err) {
         console.error('Failed to load profile:', err);
@@ -30,6 +30,7 @@ function VisitorProfile() {
         name: form.name.trim(),
         bio: form.bio.trim(),
         avatar: form.avatar || '👤',
+        profileImage: form.profileImage.trim(),
       });
       localStorage.setItem('noxtm_visitor_user', JSON.stringify(updatedUser));
       setUser(updatedUser);
@@ -67,9 +68,16 @@ function VisitorProfile() {
         <>
           {/* Profile Header */}
           <div className="visitor-profile-header">
-            <div className="visitor-profile-avatar">{user.avatar}</div>
+            {user.profileImage ? (
+              <img src={user.profileImage} alt={user.name} className="visitor-profile-avatar-img" />
+            ) : (
+              <div className="visitor-profile-avatar">{user.avatar}</div>
+            )}
             <div className="visitor-profile-info">
-              <h1>{user.name}</h1>
+              <h1>
+                {user.name}
+                {user.verified && <span className="verified-badge" title="Verified">✓</span>}
+              </h1>
               <div className="profile-email">{user.email}</div>
               {user.bio && <div className="profile-bio">{user.bio}</div>}
               <div className="visitor-profile-meta">
@@ -78,16 +86,6 @@ function VisitorProfile() {
                 {memberSince && <span>Member since {memberSince}</span>}
               </div>
             </div>
-          </div>
-
-          {/* Written by card */}
-          <div className="profile-written-by">
-            <h3>Written by</h3>
-            <div className="written-by-name">{user.name}</div>
-            <div className="written-by-stats">
-              {followersCount} Followers · {followingCount} Following
-            </div>
-            {user.bio && <div className="written-by-bio">{user.bio}</div>}
           </div>
 
           <div className="profile-actions">
@@ -103,32 +101,52 @@ function VisitorProfile() {
         <div className="visitor-card">
           <h2>Edit Profile</h2>
           <div className="profile-edit-form">
+            {/* Profile Image URL */}
             <div className="form-group">
-              <label>Avatar</label>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                {emojiOptions.map((emoji) => (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => setForm({ ...form, avatar: emoji })}
-                    style={{
-                      width: 40,
-                      height: 40,
-                      fontSize: 20,
-                      border: form.avatar === emoji ? '2px solid #131313' : '1px solid #E0E0E0',
-                      borderRadius: 8,
-                      background: form.avatar === emoji ? '#F0F0F0' : '#FFF',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
+              <label>Profile Picture URL</label>
+              <input
+                type="text"
+                value={form.profileImage}
+                onChange={(e) => setForm({ ...form, profileImage: e.target.value })}
+                placeholder="https://example.com/your-photo.jpg"
+              />
+              {form.profileImage && (
+                <div className="profile-image-preview">
+                  <img src={form.profileImage} alt="Preview" onError={(e) => { e.target.style.display = 'none'; }} />
+                </div>
+              )}
+              <p className="form-hint">Paste a URL to your profile picture. Leave empty to use an avatar emoji instead.</p>
             </div>
+
+            {/* Avatar Emoji (fallback) */}
+            {!form.profileImage && (
+              <div className="form-group">
+                <label>Avatar Emoji</label>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                  {emojiOptions.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setForm({ ...form, avatar: emoji })}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        fontSize: 20,
+                        border: form.avatar === emoji ? '2px solid #131313' : '1px solid #E0E0E0',
+                        borderRadius: 8,
+                        background: form.avatar === emoji ? '#F0F0F0' : '#FFF',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="edit-name">Full Name</label>

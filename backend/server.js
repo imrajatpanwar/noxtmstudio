@@ -149,6 +149,8 @@ const visitorSchema = new mongoose.Schema({
   password: { type: String, required: true },
   bio: { type: String, default: '' },
   avatar: { type: String, default: '👤' },
+  profileImage: { type: String, default: '' },
+  verified: { type: Boolean, default: false },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Visitor' }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Visitor' }],
 }, { timestamps: true });
@@ -166,6 +168,7 @@ const visitorBlogSchema = new mongoose.Schema({
   readTime: String,
   status: { type: String, default: 'pending' },
   claps: { type: Number, default: 0 },
+  views: { type: Number, default: 0 },
   comments: [{ user: String, text: String, date: Date }],
 }, { timestamps: true });
 const VisitorBlog = mongoose.model('VisitorBlog', visitorBlogSchema);
@@ -227,7 +230,7 @@ app.post('/api/visitors/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const visitor = await Visitor.create({ name: name.trim(), email: email.trim().toLowerCase(), password: hashed, bio: bio?.trim() || '' });
     const token = jwt.sign({ role: 'visitor', id: visitor._id, email: visitor.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar } });
+    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar, profileImage: visitor.profileImage, verified: visitor.verified } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -239,7 +242,7 @@ app.post('/api/visitors/login', async (req, res) => {
     const valid = await bcrypt.compare(password, visitor.password);
     if (!valid) return res.status(401).json({ error: 'Invalid email or password.' });
     const token = jwt.sign({ role: 'visitor', id: visitor._id, email: visitor.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar } });
+    res.json({ token, user: { id: visitor._id, name: visitor.name, email: visitor.email, bio: visitor.bio, avatar: visitor.avatar, profileImage: visitor.profileImage, verified: visitor.verified } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -253,8 +256,10 @@ app.get('/api/visitors/profile', visitorAuth, async (req, res) => {
 
 app.put('/api/visitors/profile', visitorAuth, async (req, res) => {
   try {
-    const { name, bio, avatar } = req.body;
-    const visitor = await Visitor.findByIdAndUpdate(req.visitor.id, { name, bio, avatar }, { new: true }).select('-password');
+    const { name, bio, avatar, profileImage } = req.body;
+    const update = { name, bio, avatar };
+    if (profileImage !== undefined) update.profileImage = profileImage;
+    const visitor = await Visitor.findByIdAndUpdate(req.visitor.id, update, { new: true }).select('-password');
     res.json(visitor);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -504,7 +509,19 @@ app.get('/api/visitor-blogs', async (req, res) => {
     if (req.query.status) filter.status = req.query.status;
     if (req.query.visitorId) filter.visitorId = req.query.visitorId;
     const blogs = await VisitorBlog.find(filter).sort({ createdAt: -1 });
-    res.json(blogs);
+    // Attach verification status from visitor
+    const visitorIds = [...new Set(blogs.map(b => b.visitorId.toString()))];
+    const visitors = await Visitor.find({ _id: { $in: visitorIds } }).select('verified profileImage');
+    const visitorMap = {};
+    visitors.forEach(v => { visitorMap[v._id.toString()] = { verified: v.verified, profileImage: v.profileImage }; });
+    const enriched = blogs.map(b => {
+      const obj = b.toObject();
+      const vInfo = visitorMap[b.visitorId.toString()] || {};
+      obj.visitorVerified = vInfo.verified || false;
+      obj.visitorProfileImage = vInfo.profileImage || '';
+      return obj;
+    });
+    res.json(enriched);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -512,7 +529,11 @@ app.get('/api/visitor-blogs/:id', async (req, res) => {
   try {
     const blog = await VisitorBlog.findById(req.params.id);
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
-    res.json(blog);
+    const visitor = await Visitor.findById(blog.visitorId).select('verified profileImage');
+    const obj = blog.toObject();
+    obj.visitorVerified = visitor?.verified || false;
+    obj.visitorProfileImage = visitor?.profileImage || '';
+    res.json(obj);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -606,6 +627,40 @@ app.get('/api/visitor-stats', visitorAuth, async (req, res) => {
   try {
     const blogs = await VisitorBlog.find({ visitorId: req.visitor.id });
     res.json({ blogs });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ══════════════════════════════════════════════
+// ─── ADMIN VISITOR MANAGEMENT ────────────────
+// ══════════════════════════════════════════════
+
+app.get('/api/admin/visitors', adminAuth, async (req, res) => {
+  try {
+    const visitors = await Visitor.find().select('-password').sort({ createdAt: -1 });
+    res.json(visitors);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/admin/visitors/:id/verify', adminAuth, async (req, res) => {
+  try {
+    const visitor = await Visitor.findById(req.params.id);
+    if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
+    visitor.verified = !visitor.verified;
+    await visitor.save();
+    res.json({ verified: visitor.verified, name: visitor.name });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── VIEW TRACKING ───────────────────────────
+app.put('/api/visitor-blogs/:id/view', async (req, res) => {
+  try {
+    const blog = await VisitorBlog.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+    if (!blog) return res.status(404).json({ error: 'Blog not found' });
+    res.json({ views: blog.views });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

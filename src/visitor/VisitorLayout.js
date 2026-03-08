@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import './Visitor.css';
 
 function VisitorLayout() {
@@ -63,17 +63,20 @@ function VisitorLayout() {
 
           <NavLink to="/visitor/dashboard" onClick={() => setSidebarOpen(false)}>
             <svg viewBox="0 0 24 24">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
-            Library
+            Dashboard
           </NavLink>
 
-          <NavLink to="/visitor/profile" onClick={() => setSidebarOpen(false)}>
+          <NavLink to="/visitor/write" onClick={() => setSidebarOpen(false)}>
             <svg viewBox="0 0 24 24">
-              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
             </svg>
-            Profile
+            Write
           </NavLink>
 
           <NavLink to="/visitor/my-blogs" onClick={() => setSidebarOpen(false)}>
@@ -84,7 +87,15 @@ function VisitorLayout() {
               <line x1="16" y1="17" x2="8" y2="17" />
               <polyline points="10 9 9 9 8 9" />
             </svg>
-            Stories
+            My Blogs
+          </NavLink>
+
+          <NavLink to="/visitor/profile" onClick={() => setSidebarOpen(false)}>
+            <svg viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Profile
           </NavLink>
 
           <NavLink to="/visitor/stats" onClick={() => setSidebarOpen(false)}>
@@ -98,21 +109,27 @@ function VisitorLayout() {
 
           <div className="sidebar-divider" />
 
-          <div className="sidebar-section-label">Following</div>
-          <div className="sidebar-section-text">
-            Find writers and publications to follow.
-            <br />
-            <Link to="/blog" onClick={() => setSidebarOpen(false)}>
-              See suggestions
-            </Link>
-          </div>
+          <NavLink to="/blog" className="sidebar-browse-link" onClick={() => setSidebarOpen(false)}>
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Browse Blogs
+          </NavLink>
         </nav>
 
         {/* User section */}
         <div className="sidebar-user">
-          <div className="sidebar-user-avatar">{user.avatar}</div>
+          {user.profileImage ? (
+            <img src={user.profileImage} alt={user.name} className="sidebar-user-avatar-img" />
+          ) : (
+            <div className="sidebar-user-avatar">{user.avatar}</div>
+          )}
           <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{user.name}</div>
+            <div className="sidebar-user-name">
+              {user.name}
+              {user.verified && <span className="verified-badge" title="Verified">✓</span>}
+            </div>
             <div className="sidebar-user-email">{user.email}</div>
           </div>
           <button

@@ -6,6 +6,8 @@ function VisitorBlogManager() {
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
     const [viewBlog, setViewBlog] = useState(null);
+    const [visitors, setVisitors] = useState([]);
+    const [showVisitors, setShowVisitors] = useState(false);
 
     useEffect(() => {
         loadBlogs();
@@ -15,6 +17,25 @@ function VisitorBlogManager() {
         try {
             const all = await api.getVisitorBlogs();
             setBlogs(all);
+        } catch (err) { /* ignore */ }
+    };
+
+    const loadVisitors = async () => {
+        try {
+            const all = await api.getVisitors();
+            setVisitors(all);
+        } catch (err) { /* ignore */ }
+    };
+
+    const handleToggleVisitors = () => {
+        if (!showVisitors) loadVisitors();
+        setShowVisitors(!showVisitors);
+    };
+
+    const handleVerifyToggle = async (visitorId) => {
+        try {
+            const result = await api.toggleVisitorVerification(visitorId);
+            setVisitors(prev => prev.map(v => v._id === visitorId ? { ...v, verified: result.verified } : v));
         } catch (err) { /* ignore */ }
     };
 
@@ -52,7 +73,68 @@ function VisitorBlogManager() {
                     <h1>Visitor Blog Posts</h1>
                     <p>Review and manage blog posts submitted by visitors</p>
                 </div>
+                <button className={`admin-btn ${showVisitors ? 'admin-btn-accent' : 'admin-btn-secondary'}`} onClick={handleToggleVisitors}>
+                    {showVisitors ? 'Hide Visitors' : '👥 Manage Visitors'}
+                </button>
             </div>
+
+            {/* Visitors Panel */}
+            {showVisitors && (
+                <div style={{ marginBottom: '24px', padding: '20px', background: 'var(--card-bg, #fff)', borderRadius: '12px', border: '1px solid var(--border, #E0E0E0)' }}>
+                    <h2 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Registered Visitors</h2>
+                    {visitors.length === 0 ? (
+                        <p style={{ color: 'var(--text-muted, #7A7A7A)' }}>No visitors registered yet.</p>
+                    ) : (
+                        <div className="admin-table-wrapper">
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Verified</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {visitors.map(v => (
+                                        <tr key={v._id}>
+                                            <td>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    {v.profileImage ? (
+                                                        <img src={v.profileImage} alt={v.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
+                                                    ) : (
+                                                        <span>{v.avatar || '👤'}</span>
+                                                    )}
+                                                    <span>{v.name}</span>
+                                                    {v.verified && <span style={{ color: '#2563EB', fontWeight: 700, fontSize: '0.85rem' }}>✓</span>}
+                                                </div>
+                                            </td>
+                                            <td>{v.email}</td>
+                                            <td>
+                                                <span className="admin-badge" style={{ background: v.verified ? '#DCFCE7' : '#FEE2E2', color: v.verified ? '#166534' : '#991B1B' }}>
+                                                    {v.verified ? 'Verified' : 'Unverified'}
+                                                </span>
+                                            </td>
+                                            <td style={{ whiteSpace: 'nowrap' }}>
+                                                {new Date(v.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </td>
+                                            <td>
+                                                <button
+                                                    className={`admin-btn admin-btn-sm ${v.verified ? 'admin-btn-danger' : 'admin-btn-accent'}`}
+                                                    onClick={() => handleVerifyToggle(v._id)}
+                                                >
+                                                    {v.verified ? 'Remove Badge' : '✓ Verify'}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Filters & Search */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -156,8 +238,13 @@ function VisitorBlogManager() {
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span>{blog.visitorAvatar || '👤'}</span>
+                                            {blog.visitorProfileImage ? (
+                                                <img src={blog.visitorProfileImage} alt={blog.visitorName} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <span>{blog.visitorAvatar || '👤'}</span>
+                                            )}
                                             <span>{blog.visitorName}</span>
+                                            {blog.visitorVerified && <span style={{ color: '#2563EB', fontWeight: 700, fontSize: '0.85rem' }}>✓</span>}
                                         </div>
                                     </td>
                                     <td>

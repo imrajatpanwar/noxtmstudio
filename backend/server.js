@@ -198,6 +198,7 @@ const visitorBlogSchema = new mongoose.Schema({
   visitorName: String,
   visitorAvatar: String,
   title: { type: String, required: true },
+  slug: { type: String, unique: true, sparse: true },
   content: String,
   excerpt: String,
   featureImage: String,
@@ -612,15 +613,23 @@ app.get('/api/visitor-blogs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/visitor-blogs/:id', async (req, res) => {
+app.get('/api/visitor-blogs/:slugOrId', async (req, res) => {
   try {
-    const blog = await VisitorBlog.findById(req.params.id);
+    let blog = await VisitorBlog.findOne({ slug: req.params.slugOrId });
+    let redirectSlug = null;
+    if (!blog) {
+      if (mongoose.Types.ObjectId.isValid(req.params.slugOrId)) {
+        blog = await VisitorBlog.findById(req.params.slugOrId);
+        if (blog && blog.slug) redirectSlug = blog.slug;
+      }
+    }
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
     const visitor = await Visitor.findById(blog.visitorId).select('verified profileImage bio');
     const obj = blog.toObject();
     obj.visitorVerified = visitor?.verified || false;
     obj.visitorProfileImage = visitor?.profileImage || '';
     obj.visitorBio = visitor?.bio || '';
+    if (redirectSlug) obj._redirectSlug = redirectSlug;
     res.json(obj);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -629,12 +638,19 @@ app.post('/api/visitor-blogs', visitorAuth, async (req, res) => {
   try {
     const visitor = await Visitor.findById(req.visitor.id);
     if (visitor.suspended) return res.status(403).json({ error: 'Your account has been suspended. You cannot create blog posts. Contact mail@noxtmstudio.com to appeal.' });
-    const blog = await VisitorBlog.create({
+    const data = {
       ...req.body,
       visitorId: req.visitor.id,
       visitorName: visitor.name,
       visitorAvatar: visitor.avatar,
-    });
+    };
+    if (!data.slug && data.title) data.slug = generateSlug(data.title);
+    let baseSlug = data.slug;
+    let counter = 1;
+    while (await VisitorBlog.findOne({ slug: data.slug })) {
+      data.slug = `${baseSlug}-${counter++}`;
+    }
+    const blog = await VisitorBlog.create(data);
     res.json(blog);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -642,9 +658,18 @@ app.post('/api/visitor-blogs', visitorAuth, async (req, res) => {
 app.put('/api/visitor-blogs/:id', visitorAuth, async (req, res) => {
   try {
     const { title, content, excerpt, featureImage, topics, readTime } = req.body;
+    const updateData = { title, content, excerpt, featureImage, topics, readTime, status: 'pending' };
+    if (!updateData.slug && title) updateData.slug = generateSlug(title);
+    if (updateData.slug) {
+      let baseSlug = updateData.slug;
+      let counter = 1;
+      while (await VisitorBlog.findOne({ slug: updateData.slug, _id: { $ne: req.params.id } })) {
+        updateData.slug = `${baseSlug}-${counter++}`;
+      }
+    }
     const blog = await VisitorBlog.findOneAndUpdate(
       { _id: req.params.id, visitorId: req.visitor.id },
-      { title, content, excerpt, featureImage, topics, readTime, status: 'pending' },
+      updateData,
       { new: true }
     );
     if (!blog) return res.status(404).json({ error: 'Blog not found or not authorized' });
@@ -656,6 +681,26 @@ app.delete('/api/visitor-blogs/:id', visitorAuth, async (req, res) => {
   try {
     await VisitorBlog.findOneAndDelete({ _id: req.params.id, visitorId: req.visitor.id });
     res.json({ message: 'Deleted' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Backfill slugs for existing visitor blogs
+app.post('/api/visitor-blogs/backfill-slugs', adminAuth, async (req, res) => {
+  try {
+    const blogs = await VisitorBlog.find({ $or: [{ slug: null }, { slug: '' }, { slug: { $exists: false } }] });
+    let updated = 0;
+    for (const blog of blogs) {
+      let slug = generateSlug(blog.title);
+      let baseSlug = slug;
+      let counter = 1;
+      while (await VisitorBlog.findOne({ slug, _id: { $ne: blog._id } })) {
+        slug = `${baseSlug}-${counter++}`;
+      }
+      blog.slug = slug;
+      await blog.save();
+      updated++;
+    }
+    res.json({ message: `Backfilled slugs for ${updated} visitor blog posts` });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -771,14 +816,15 @@ app.put('/api/admin/visitors/:id/suspend', adminAuth, async (req, res) => {
 });
 
 // ─── VIEW TRACKING ───────────────────────────
-app.put('/api/visitor-blogs/:id/view', async (req, res) => {
+app.put('/api/visitor-blogs/:slugOrId/view', async (req, res) => {
   try {
-    const blog = await VisitorBlog.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { views: 1 } },
-      { new: true }
-    );
+    let blog = await VisitorBlog.findOne({ slug: req.params.slugOrId });
+    if (!blog && mongoose.Types.ObjectId.isValid(req.params.slugOrId)) {
+      blog = await VisitorBlog.findById(req.params.slugOrId);
+    }
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
+    blog.views = (blog.views || 0) + 1;
+    await blog.save();
     res.json({ views: blog.views });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -861,9 +907,10 @@ app.get('/sitemap.xml', async (req, res) => {
 
     // Visitor blogs (approved)
     for (const vb of visitorBlogs) {
+      if (!vb.slug) continue;
       const lastmod = vb.updatedAt ? new Date(vb.updatedAt).toISOString().split('T')[0] : today;
       xml += '  <url>\n';
-      xml += `    <loc>${SITE}/blog/visitor-${vb._id}</loc>\n`;
+      xml += `    <loc>${SITE}/blog/visitor-${encodeURIComponent(vb.slug)}</loc>\n`;
       xml += `    <lastmod>${lastmod}</lastmod>\n`;
       xml += '    <changefreq>weekly</changefreq>\n';
       xml += '    <priority>0.7</priority>\n';

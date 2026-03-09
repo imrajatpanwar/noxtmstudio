@@ -141,7 +141,7 @@ function Blog() {
                 ]);
                 const published = (Array.isArray(blogs) ? blogs : []).filter(b => b.status === 'Published');
                 const approved = (Array.isArray(visitorBlogs) ? visitorBlogs : []).map(blog => ({
-                    _id: `visitor-${blog._id}`,
+                    _id: `visitor-${blog.slug || blog._id}`,
                     author: blog.visitorName,
                     authorAvatar: blog.visitorProfileImage ? null : (blog.visitorAvatar || '👤'),
                     authorProfileImage: blog.visitorProfileImage || '',

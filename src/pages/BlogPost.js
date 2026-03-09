@@ -100,6 +100,11 @@ function BlogPost() {
                 if (id.startsWith('visitor-')) {
                     const realId = id.replace('visitor-', '');
                     const data = await api.getVisitorBlog(realId);
+                    // If the API returns a redirect hint (old _id URL), navigate to slug URL
+                    if (data._redirectSlug && data._redirectSlug !== realId) {
+                        navigate(`/blog/visitor-${data._redirectSlug}`, { replace: true });
+                        return;
+                    }
                     setPost({
                         ...data,
                         _id: id,

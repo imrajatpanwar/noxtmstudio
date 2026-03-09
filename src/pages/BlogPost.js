@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import VerificationBadge from './image/Verification.svg';
-import { useParams, Link, NavLink } from 'react-router-dom';
+import { useParams, Link, NavLink, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import api from '../api';
@@ -75,7 +75,8 @@ function formatMarkdown(text) {
 
 /* ── Main BlogPost Component ── */
 function BlogPost() {
-    const { id } = useParams();
+    const { slug } = useParams();
+    const navigate = useNavigate();
     const [post, setPost] = useState(null);
     const [allPosts, setAllPosts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -90,18 +91,46 @@ function BlogPost() {
         } catch { /* ignore */ }
     }, []);
 
+    // Update document head meta tags whenever the post changes
     useEffect(() => {
-        if (!id) return;
+        if (!post) return;
+        const BASE = 'https://noxtmstudio.com';
+        const postUrl = post.isVisitorBlog
+            ? `${BASE}/blog/${post._id}`
+            : `${BASE}/blog/${post.slug || post._id}`;
+        const canonical = post.canonicalUrl || postUrl;
+        document.title = `${post.title} | Noxtm Studio`;
+        const setMeta = (attr, key, val) => {
+            let el = document.querySelector(`meta[${attr}="${key}"]`);
+            if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+            el.setAttribute('content', val);
+        };
+        const setLink = (rel, href) => {
+            let el = document.querySelector(`link[rel="${rel}"]`);
+            if (!el) { el = document.createElement('link'); el.setAttribute('rel', rel); document.head.appendChild(el); }
+            el.setAttribute('href', href);
+        };
+        setMeta('property', 'og:title', post.ogTitle || post.title);
+        setMeta('property', 'og:description', post.ogDescription || post.excerpt || post.description || '');
+        setMeta('property', 'og:url', postUrl);
+        setMeta('property', 'og:image', post.ogImage || post.featureImage || '');
+        setMeta('property', 'og:type', 'article');
+        setMeta('name', 'description', post.metaDescription || post.excerpt || post.description || '');
+        setLink('canonical', canonical);
+    }, [post]);
+
+    useEffect(() => {
+        if (!slug) return;
         const fetchBlog = async () => {
             setLoading(true);
             try {
-                // Check if it's a visitor blog (id starts with "visitor-")
-                if (id.startsWith('visitor-')) {
-                    const realId = id.replace('visitor-', '');
+                // Check if it's a visitor blog (slug starts with "visitor-")
+                if (slug.startsWith('visitor-')) {
+                    const realId = slug.replace('visitor-', '');
                     const data = await api.getVisitorBlog(realId);
                     setPost({
                         ...data,
-                        _id: id,
+                        _id: slug,
                         author: data.visitorName,
                         authorAvatar: data.visitorProfileImage ? null : (data.visitorAvatar || '👤'),
                         authorProfileImage: data.visitorProfileImage || '',
@@ -122,7 +151,12 @@ function BlogPost() {
                     // Increment view count
                     api.incrementBlogView(realId).catch(() => {});
                 } else {
-                    const data = await api.getBlog(id);
+                    const data = await api.getBlog(slug);
+                    // 301 redirect: old _id-based URL → new slug URL
+                    if (data._legacyRedirect) {
+                        navigate(`/blog/${data._legacyRedirect}`, { replace: true });
+                        return;
+                    }
                     setPost(data);
                 }
             } catch (err) {
@@ -133,7 +167,7 @@ function BlogPost() {
             }
         };
         fetchBlog();
-    }, [id]);
+    }, [slug, navigate]);
 
     useEffect(() => {
         const fetchAllBlogs = async () => {

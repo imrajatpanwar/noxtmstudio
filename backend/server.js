@@ -207,6 +207,18 @@ const trustLogoSchema = new mongoose.Schema({
 }, { timestamps: true });
 const TrustLogo = mongoose.model('TrustLogo', trustLogoSchema);
 
+// ──────────────────────────────────────────────
+// Slug helper
+// ──────────────────────────────────────────────
+function generateBlogSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
+
 // ══════════════════════════════════════════════
 // ─── AUTH MIDDLEWARE ──────────────────────────
 // ══════════════════════════════════════════════
@@ -317,16 +329,57 @@ app.get('/api/blogs', async (req, res) => {
 
 app.get('/api/blogs/:slug', async (req, res) => {
   try {
-    const blog = await Blog.findOne({ slug: req.params.slug });
+    let blog = await Blog.findOne({ slug: req.params.slug });
+    let legacyRedirect = null;
+    // Fallback: look up by _id for old hash-based URLs
+    if (!blog && mongoose.Types.ObjectId.isValid(req.params.slug)) {
+      blog = await Blog.findById(req.params.slug);
+      if (blog) {
+        if (!blog.slug) {
+          // Auto-generate slug for this post and persist it
+          let newSlug = generateBlogSlug(blog.title);
+          const clash = await Blog.findOne({ slug: newSlug, _id: { $ne: blog._id } });
+          if (clash) newSlug = newSlug + '-' + blog._id.toString().slice(-6);
+          blog.slug = newSlug;
+          await blog.save();
+        }
+        legacyRedirect = blog.slug;
+      }
+    }
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
-    res.json(blog);
+    const result = blog.toObject();
+    if (legacyRedirect) result._legacyRedirect = legacyRedirect;
+    res.json(result);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/blogs', adminAuth, async (req, res) => {
   try {
-    const blog = await Blog.create(req.body);
+    const data = { ...req.body };
+    if (!data.slug && data.title) {
+      let slug = generateBlogSlug(data.title);
+      const clash = await Blog.findOne({ slug });
+      if (clash) slug = slug + '-' + Date.now();
+      data.slug = slug;
+    }
+    const blog = await Blog.create(data);
     res.json(blog);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Migrate existing posts without slugs (run once from admin dashboard)
+app.post('/api/admin/migrate-blog-slugs', adminAuth, async (req, res) => {
+  try {
+    const blogs = await Blog.find({ $or: [{ slug: '' }, { slug: null }, { slug: { $exists: false } }] });
+    let migrated = 0;
+    for (const blog of blogs) {
+      let slug = generateBlogSlug(blog.title);
+      const clash = await Blog.findOne({ slug, _id: { $ne: blog._id } });
+      if (clash) slug = slug + '-' + blog._id.toString().slice(-6);
+      await Blog.findByIdAndUpdate(blog._id, { slug });
+      migrated++;
+    }
+    res.json({ migrated });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

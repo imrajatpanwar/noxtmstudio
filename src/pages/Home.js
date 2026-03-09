@@ -16,7 +16,7 @@ import GoogleAds from './image/GoogleAds.svg';
 import FootersBg from './image/footers_file.webp';
 
 /* Hero background images — fast webp placeholder + full-quality PNG */
-const HeroBgWebp = process.env.PUBLIC_URL + '/images/noxtm_studio.webp';
+const HeroBgWebp = process.env.PUBLIC_URL + '/images/noxtmstudio.webp';
 const HeroBgFull = process.env.PUBLIC_URL + '/images/noxtmstudio_jpg_file.png';
 
 /* ── Circle folder assets (served from public/) ── */

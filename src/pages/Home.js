@@ -15,8 +15,7 @@ import MetaLogo from './image/MetaLogo.svg';
 import GoogleAds from './image/GoogleAds.svg';
 import FootersBg from './image/footers_file.webp';
 
-/* Hero background images — fast webp placeholder + full-quality PNG */
-const HeroBgWebp = process.env.PUBLIC_URL + '/images/noxtmstudio.webp';
+/* Hero background image */
 const HeroBgFull = process.env.PUBLIC_URL + '/images/noxtmstudio_jpg_file.png';
 
 /* ── Circle folder assets (served from public/) ── */
@@ -961,13 +960,7 @@ export default function Home() {
     const [activeService, setActiveService] = useState(0);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    /* Progressive hero image: show webp instantly, swap to full PNG when loaded */
-    const [heroLoaded, setHeroLoaded] = useState(false);
-    useEffect(() => {
-        const img = new Image();
-        img.onload = () => setHeroLoaded(true);
-        img.src = HeroBgFull;
-    }, []);
+
 
     /* Trust logos from admin (API) */
     const [trustLogos, setTrustLogos] = useState([]);
@@ -1114,20 +1107,11 @@ export default function Home() {
             {/* ═══ Full-Width Hero ═══ */}
             <section className="hero-rect">
                 <div className="hero-rect-inner">
-                    {/* Progressive hero images — fast WebP first, then full PNG */}
-                    <img
-                        src={HeroBgWebp}
-                        alt=""
-                        aria-hidden="true"
-                        className="hero-bg-img"
-                        style={{ opacity: heroLoaded ? 0 : 1 }}
-                    />
                     <img
                         src={HeroBgFull}
                         alt=""
                         aria-hidden="true"
                         className="hero-bg-img"
-                        style={{ opacity: heroLoaded ? 1 : 0 }}
                     />
 
                     {/* Film grain overlay */}

@@ -47,9 +47,18 @@ mongoose.connect(process.env.MONGODB_URI)
 // ─── MONGOOSE MODELS ─────────────────────────
 // ══════════════════════════════════════════════
 
+function generateSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 const blogSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  slug: String,
+  slug: { type: String, unique: true, sparse: true },
   author: String,
   content: String,
   featureImage: String,
@@ -207,18 +216,6 @@ const trustLogoSchema = new mongoose.Schema({
 }, { timestamps: true });
 const TrustLogo = mongoose.model('TrustLogo', trustLogoSchema);
 
-// ──────────────────────────────────────────────
-// Slug helper
-// ──────────────────────────────────────────────
-function generateBlogSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim();
-}
-
 // ══════════════════════════════════════════════
 // ─── AUTH MIDDLEWARE ──────────────────────────
 // ══════════════════════════════════════════════
@@ -327,65 +324,53 @@ app.get('/api/blogs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/api/blogs/:slug', async (req, res) => {
+app.get('/api/blogs/:slugOrId', async (req, res) => {
   try {
-    let blog = await Blog.findOne({ slug: req.params.slug });
-    let legacyRedirect = null;
-    // Fallback: look up by _id for old hash-based URLs
-    if (!blog && mongoose.Types.ObjectId.isValid(req.params.slug)) {
-      blog = await Blog.findById(req.params.slug);
+    const param = req.params.slugOrId;
+    // Try by slug first
+    let blog = await Blog.findOne({ slug: param });
+    if (blog) return res.json(blog);
+    // Fallback: try by _id (for old hash-based URLs)
+    if (param.match(/^[0-9a-fA-F]{24}$/)) {
+      blog = await Blog.findById(param);
       if (blog) {
-        if (!blog.slug) {
-          // Auto-generate slug for this post and persist it
-          let newSlug = generateBlogSlug(blog.title);
-          const clash = await Blog.findOne({ slug: newSlug, _id: { $ne: blog._id } });
-          if (clash) newSlug = newSlug + '-' + blog._id.toString().slice(-6);
-          blog.slug = newSlug;
-          await blog.save();
-        }
-        legacyRedirect = blog.slug;
+        // Return the blog with a redirect hint so frontend can 301
+        return res.json({ ...blog.toObject(), _redirectSlug: blog.slug || null });
       }
     }
-    if (!blog) return res.status(404).json({ error: 'Blog not found' });
-    const result = blog.toObject();
-    if (legacyRedirect) result._legacyRedirect = legacyRedirect;
-    res.json(result);
+    return res.status(404).json({ error: 'Blog not found' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/blogs', adminAuth, async (req, res) => {
   try {
     const data = { ...req.body };
-    if (!data.slug && data.title) {
-      let slug = generateBlogSlug(data.title);
-      const clash = await Blog.findOne({ slug });
-      if (clash) slug = slug + '-' + Date.now();
-      data.slug = slug;
+    if (!data.slug && data.title) data.slug = generateSlug(data.title);
+    // Ensure slug uniqueness
+    let baseSlug = data.slug;
+    let counter = 1;
+    while (await Blog.findOne({ slug: data.slug })) {
+      data.slug = `${baseSlug}-${counter++}`;
     }
     const blog = await Blog.create(data);
     res.json(blog);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Migrate existing posts without slugs (run once from admin dashboard)
-app.post('/api/admin/migrate-blog-slugs', adminAuth, async (req, res) => {
-  try {
-    const blogs = await Blog.find({ $or: [{ slug: '' }, { slug: null }, { slug: { $exists: false } }] });
-    let migrated = 0;
-    for (const blog of blogs) {
-      let slug = generateBlogSlug(blog.title);
-      const clash = await Blog.findOne({ slug, _id: { $ne: blog._id } });
-      if (clash) slug = slug + '-' + blog._id.toString().slice(-6);
-      await Blog.findByIdAndUpdate(blog._id, { slug });
-      migrated++;
-    }
-    res.json({ migrated });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
 app.put('/api/blogs/:id', adminAuth, async (req, res) => {
   try {
-    const blog = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const data = { ...req.body };
+    // Auto-generate slug if missing
+    if (!data.slug && data.title) data.slug = generateSlug(data.title);
+    // Ensure slug uniqueness (exclude current doc)
+    if (data.slug) {
+      let baseSlug = data.slug;
+      let counter = 1;
+      while (await Blog.findOne({ slug: data.slug, _id: { $ne: req.params.id } })) {
+        data.slug = `${baseSlug}-${counter++}`;
+      }
+    }
+    const blog = await Blog.findByIdAndUpdate(req.params.id, data, { new: true });
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
     res.json(blog);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -395,6 +380,26 @@ app.delete('/api/blogs/:id', adminAuth, async (req, res) => {
   try {
     await Blog.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Backfill slugs for existing posts that don't have one
+app.post('/api/blogs/backfill-slugs', adminAuth, async (req, res) => {
+  try {
+    const blogs = await Blog.find({ $or: [{ slug: null }, { slug: '' }, { slug: { $exists: false } }] });
+    let updated = 0;
+    for (const blog of blogs) {
+      let slug = generateSlug(blog.title);
+      let baseSlug = slug;
+      let counter = 1;
+      while (await Blog.findOne({ slug, _id: { $ne: blog._id } })) {
+        slug = `${baseSlug}-${counter++}`;
+      }
+      blog.slug = slug;
+      await blog.save();
+      updated++;
+    }
+    res.json({ message: `Backfilled slugs for ${updated} posts` });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

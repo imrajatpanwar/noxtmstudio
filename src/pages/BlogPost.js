@@ -75,7 +75,7 @@ function formatMarkdown(text) {
 
 /* ── Main BlogPost Component ── */
 function BlogPost() {
-    const { slug } = useParams();
+    const { id } = useParams();
     const navigate = useNavigate();
     const [post, setPost] = useState(null);
     const [allPosts, setAllPosts] = useState([]);
@@ -91,46 +91,18 @@ function BlogPost() {
         } catch { /* ignore */ }
     }, []);
 
-    // Update document head meta tags whenever the post changes
     useEffect(() => {
-        if (!post) return;
-        const BASE = 'https://noxtmstudio.com';
-        const postUrl = post.isVisitorBlog
-            ? `${BASE}/blog/${post._id}`
-            : `${BASE}/blog/${post.slug || post._id}`;
-        const canonical = post.canonicalUrl || postUrl;
-        document.title = `${post.title} | Noxtm Studio`;
-        const setMeta = (attr, key, val) => {
-            let el = document.querySelector(`meta[${attr}="${key}"]`);
-            if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
-            el.setAttribute('content', val);
-        };
-        const setLink = (rel, href) => {
-            let el = document.querySelector(`link[rel="${rel}"]`);
-            if (!el) { el = document.createElement('link'); el.setAttribute('rel', rel); document.head.appendChild(el); }
-            el.setAttribute('href', href);
-        };
-        setMeta('property', 'og:title', post.ogTitle || post.title);
-        setMeta('property', 'og:description', post.ogDescription || post.excerpt || post.description || '');
-        setMeta('property', 'og:url', postUrl);
-        setMeta('property', 'og:image', post.ogImage || post.featureImage || '');
-        setMeta('property', 'og:type', 'article');
-        setMeta('name', 'description', post.metaDescription || post.excerpt || post.description || '');
-        setLink('canonical', canonical);
-    }, [post]);
-
-    useEffect(() => {
-        if (!slug) return;
+        if (!id) return;
         const fetchBlog = async () => {
             setLoading(true);
             try {
-                // Check if it's a visitor blog (slug starts with "visitor-")
-                if (slug.startsWith('visitor-')) {
-                    const realId = slug.replace('visitor-', '');
+                // Check if it's a visitor blog (id starts with "visitor-")
+                if (id.startsWith('visitor-')) {
+                    const realId = id.replace('visitor-', '');
                     const data = await api.getVisitorBlog(realId);
                     setPost({
                         ...data,
-                        _id: slug,
+                        _id: id,
                         author: data.visitorName,
                         authorAvatar: data.visitorProfileImage ? null : (data.visitorAvatar || '👤'),
                         authorProfileImage: data.visitorProfileImage || '',
@@ -151,10 +123,10 @@ function BlogPost() {
                     // Increment view count
                     api.incrementBlogView(realId).catch(() => {});
                 } else {
-                    const data = await api.getBlog(slug);
-                    // 301 redirect: old _id-based URL → new slug URL
-                    if (data._legacyRedirect) {
-                        navigate(`/blog/${data._legacyRedirect}`, { replace: true });
+                    const data = await api.getBlog(id);
+                    // If the API returns a redirect hint (old _id URL), navigate to slug URL
+                    if (data._redirectSlug && data._redirectSlug !== id) {
+                        navigate(`/blog/${data._redirectSlug}`, { replace: true });
                         return;
                     }
                     setPost(data);
@@ -167,7 +139,51 @@ function BlogPost() {
             }
         };
         fetchBlog();
-    }, [slug, navigate]);
+    }, [id, navigate]);
+
+    // Set og:url, canonical, and document title when post loads
+    useEffect(() => {
+        if (!post) return;
+        const slug = post.slug || id;
+        const canonicalUrl = post.canonicalUrl || `https://noxtmstudio.com/blog/${slug}`;
+        const ogUrl = canonicalUrl;
+        const ogTitle = post.ogTitle || post.metaTitle || post.title;
+        const ogDesc = post.ogDescription || post.metaDescription || post.excerpt || '';
+        const ogImage = post.ogImage || post.featureImage || '';
+
+        document.title = `${post.metaTitle || post.title} | Noxtm Studio`;
+
+        const setMeta = (attr, key, content) => {
+            let el = document.querySelector(`meta[${attr}="${key}"]`);
+            if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+            el.setAttribute('content', content);
+        };
+        const setLink = (rel, href) => {
+            let el = document.querySelector(`link[rel="${rel}"]`);
+            if (!el) { el = document.createElement('link'); el.setAttribute('rel', rel); document.head.appendChild(el); }
+            el.setAttribute('href', href);
+        };
+
+        setLink('canonical', canonicalUrl);
+        setMeta('property', 'og:url', ogUrl);
+        setMeta('property', 'og:title', ogTitle);
+        setMeta('property', 'og:description', ogDesc);
+        if (ogImage) setMeta('property', 'og:image', ogImage);
+        setMeta('property', 'og:type', 'article');
+        setMeta('property', 'twitter:url', ogUrl);
+        setMeta('property', 'twitter:title', ogTitle);
+        setMeta('property', 'twitter:description', ogDesc);
+        if (ogImage) setMeta('property', 'twitter:image', ogImage);
+        if (post.metaDescription) setMeta('name', 'description', post.metaDescription);
+        if (post.metaKeywords) setMeta('name', 'keywords', post.metaKeywords);
+        if (post.robotsMeta) setMeta('name', 'robots', post.robotsMeta);
+
+        return () => {
+            document.title = 'Noxtm Studio';
+            const canonical = document.querySelector('link[rel="canonical"]');
+            if (canonical) canonical.remove();
+        };
+    }, [post, id]);
 
     useEffect(() => {
         const fetchAllBlogs = async () => {

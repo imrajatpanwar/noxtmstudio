@@ -1073,18 +1073,65 @@ html {
 }
 
 @media (max-width: 768px) {
+    .service-card-display {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
     .service-card-display.sm-showcase-layout {
         grid-template-columns: 1fr;
+    }
+    .service-toggle-bar {
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .service-toggle-btn {
+        font-size: 0.72rem;
+        padding: 10px 8px;
+        white-space: nowrap;
+        min-width: 0;
     }
     .sm-showcase {
         max-width: 100%;
         aspect-ratio: 1.2 / 1;
+        margin: 0 auto;
     }
     .sm-avatar-ig { width: 20%; }
     .sm-avatar-li { width: 18%; }
     .sm-avatar-x { width: 16%; }
     .sm-badge-views { width: 36%; }
-    .sm-badge-growth { width: 50%; }
+    .sm-badge-growth { width: 46%; left: -12%; }
+}
+
+@media (max-width: 480px) {
+    .service-toggle-bar {
+        margin: 0 auto 1.5rem;
+        padding: 4px;
+    }
+    .service-toggle-btn {
+        font-size: 0.78rem;
+        padding: 10px 14px;
+        letter-spacing: -0.01em;
+    }
+    .sm-showcase {
+        aspect-ratio: 1.1 / 1;
+    }
+    .sm-avatar-ig { width: 22%; top: 58%; left: 0%; }
+    .sm-avatar-li { width: 18%; top: 8%; }
+    .sm-avatar-x { width: 16%; top: 72%; right: 2%; }
+    .sm-badge-views { width: 38%; top: 40%; right: -4%; }
+    .sm-badge-growth { width: 44%; bottom: 4%; left: -8%; }
+    .sm-center-text {
+        bottom: 3%;
+    }
+    .sm-milestone-wrap {
+        height: clamp(32px, 8vw, 48px);
+    }
+    .sm-milestone-counter {
+        font-size: clamp(28px, 8vw, 42px);
+    }
+    .sm-followers-label {
+        font-size: clamp(10px, 2.5vw, 14px);
+    }
 }
 
 /* ═════════════════════════════════════════════════
@@ -2174,7 +2221,7 @@ html {
 .cta-text-bg {
     position: relative;
     z-index: 1;
-    padding: 10rem 2rem 2rem;
+    padding: 0rem 2rem 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2185,7 +2232,7 @@ html {
 /* Footer image sits on top of text, transparent holes reveal text */
 .cta-footer-img {
     position: absolute;
-    top: 0;
+    top: -80px;
     left: 0;
     width: 100%;
     height: auto;
@@ -2201,7 +2248,7 @@ html {
     z-index: 3;
     display: flex;
     justify-content: center;
-    padding: 1.5rem 2rem 2rem;
+    padding: 1.5rem 2rem 4rem;
 }
 
 .cta-connect-btn {
@@ -2325,9 +2372,9 @@ html {
     grid-column: span 1;
 }
 
-.footer-brand-name {
+.footer-col .footer-brand-name {
     font-family: 'Switzer', sans-serif;
-    font-size: 1.75rem;
+    font-size: 1.85rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 10px;
@@ -2615,7 +2662,7 @@ html {
     .work-section,
     .testimonial-section,
     .updates-section {
-        padding: 4rem 1.5rem;
+        padding: 2rem 3rem 0rem 3rem;
     }
 
     .cta-section .cta-content {

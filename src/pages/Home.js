@@ -37,6 +37,7 @@ const SERVICES = [
     {
         hindi: 'सोशल मीडिया',
         title: 'Social Media Management',
+        shortTitle: 'SMM',
         desc: 'We craft scroll-stopping content, build engaged communities, and grow your brand presence across Instagram, LinkedIn, Facebook & X — rooted in cultural storytelling that resonates with Indian audiences.',
         tags: ['Instagram', 'LinkedIn', 'Facebook', 'X (Twitter)'],
         gradient: 'gradient-saffron',
@@ -53,6 +54,7 @@ const SERVICES = [
     {
         hindi: 'मेटा विज्ञापन',
         title: 'Performance Marketing',
+        shortTitle: 'Performance',
         desc: 'Data-driven Facebook & Instagram ad campaigns that deliver results. From audience targeting to creative optimization, we maximize your ROAS with precision that transforms your ad spend into measurable growth.',
         tags: ['Facebook Ads', 'Instagram Ads', 'Retargeting', 'Analytics'],
         gradient: 'gradient-blue',
@@ -72,6 +74,7 @@ const SERVICES = [
     {
         hindi: 'ग्राफिक डिज़ाइन',
         title: 'Graphic Design',
+        shortTitle: 'Design',
         desc: 'From brand identity to social media creatives, our designers blend Indian aesthetic traditions with contemporary design thinking. Every visual tells your brand story with cultural depth and modern sophistication.',
         tags: ['Brand Identity', 'Social Creatives', 'Print Design', 'Motion Graphics'],
         gradient: 'gradient-emerald',
@@ -488,10 +491,28 @@ function setLinkTag(rel, href) {
     el.setAttribute('href', href);
 }
 
+function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 3600) return `${Math.max(1, Math.floor(diff / 60))}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}hr ago`;
+    if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 86400 * 30) return `${Math.floor(diff / (86400 * 7))}w ago`;
+    if (diff < 86400 * 365) return `${Math.floor(diff / (86400 * 30))}mo ago`;
+    return `${Math.floor(diff / (86400 * 365))}y ago`;
+}
+
 export default function Home() {
     /* Service toggle state */
     const [activeService, setActiveService] = useState(0);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     /* Progressive hero image: show webp instantly, swap to full PNG when loaded */
     const [heroLoaded, setHeroLoaded] = useState(false);
@@ -748,7 +769,7 @@ export default function Home() {
                             className={`service-toggle-btn ${i === activeService ? 'active' : ''}`}
                             onClick={() => setActiveService(i)}
                         >
-                            {service.title}
+                            {isMobile ? service.shortTitle : service.title}
                         </button>
                     ))}
                     {/* Sliding active indicator */}
@@ -1045,7 +1066,7 @@ export default function Home() {
                             <div className="update-card-body">
                                 <span className="update-category">{b.category || 'BLOG'}</span>
                                 <h3 className="update-title">{b.title}</h3>
-                                <span className="update-date">{b.publishDate || b.createdAt || ''}</span>
+                                <span className="update-date">{b.author ? `By ${b.author} · ` : ''}{timeAgo(b.publishDate || b.createdAt)}</span>
                             </div>
                         </a>
                     )) : (

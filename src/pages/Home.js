@@ -1113,10 +1113,23 @@ export default function Home() {
 
             {/* ═══ Full-Width Hero ═══ */}
             <section className="hero-rect">
-                <div
-                    className={`hero-rect-inner${heroLoaded ? ' hero-bg-loaded' : ''}`}
-                    style={{ backgroundImage: `url(${heroLoaded ? HeroBgFull : HeroBgWebp})` }}
-                >
+                <div className="hero-rect-inner">
+                    {/* Progressive hero images — fast WebP first, then full PNG */}
+                    <img
+                        src={HeroBgWebp}
+                        alt=""
+                        aria-hidden="true"
+                        className="hero-bg-img"
+                        style={{ opacity: heroLoaded ? 0 : 1 }}
+                    />
+                    <img
+                        src={HeroBgFull}
+                        alt=""
+                        aria-hidden="true"
+                        className="hero-bg-img"
+                        style={{ opacity: heroLoaded ? 1 : 0 }}
+                    />
+
                     {/* Film grain overlay */}
                     <div className="hero-grain" aria-hidden="true" />
 

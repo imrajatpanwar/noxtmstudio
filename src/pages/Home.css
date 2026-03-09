@@ -240,72 +240,6 @@ html {
 }
 
 /* ═════════════════════════════════════════════════
-   GLASS STRIPS — Animated pair
-   ═════════════════════════════════════════════════ */
-.glass-strip {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 124px;
-    height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 15%, rgba(255, 255, 255, 0.12) 40%, rgba(255, 255, 255, 0.12) 60%, rgba(255, 255, 255, 0.06) 85%, transparent 100%);
-    backdrop-filter: blur(17px) saturate(120%);
-    -webkit-backdrop-filter: blur(17px) saturate(120%);
-    z-index: 5;
-    animation: glassSlide1 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    pointer-events: none;
-    box-shadow: 0 0 37px rgba(27, 54, 26, 0.08), inset 0 0 27px rgba(255, 255, 255, 0.05);
-}
-
-.glass-strip-2 {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 124px;
-    height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.05) 15%, rgba(255, 255, 255, 0.10) 40%, rgba(255, 255, 255, 0.10) 60%, rgba(255, 255, 255, 0.05) 85%, transparent 100%);
-    backdrop-filter: blur(26px) saturate(115%);
-    -webkit-backdrop-filter: blur(26px) saturate(115%);
-    z-index: 5;
-    animation: glassSlide2 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s forwards;
-    opacity: 0;
-    pointer-events: none;
-    box-shadow: 0 0 37px rgba(27, 54, 26, 0.08), inset 0 0 27px rgba(255, 255, 255, 0.05);
-}
-
-@keyframes glassSlide1 {
-    0% {
-        transform: translateX(-300px) skewX(-9deg);
-        opacity: 0;
-    }
-
-    15% {
-        opacity: 1;
-    }
-
-    100% {
-        transform: translateX(1315px) skewX(-9deg);
-        opacity: 1;
-    }
-}
-
-@keyframes glassSlide2 {
-    0% {
-        transform: translateX(-300px) skewX(-9deg);
-        opacity: 0;
-    }
-
-    15% {
-        opacity: 1;
-    }
-
-    100% {
-        transform: translateX(1379px) skewX(-9deg);
-        opacity: 1;
-    }
-}
-
-/* ═════════════════════════════════════════════════
    HERO INNER LAYOUT
    ═════════════════════════════════════════════════ */
 .hero-rect-inner {
@@ -318,19 +252,21 @@ html {
     gap: 60px;
     position: relative;
     z-index: 2;
-    background-size: cover;
-    background-position: center 20%;
-    background-repeat: no-repeat;
     background-color: #111;
     border-radius: 0;
-    transition: background-image 0.6s ease;
-    animation: heroKenBurns 25s ease-in-out infinite alternate;
 }
 
-/* ── Ken Burns — slow cinematic zoom/pan ── */
-@keyframes heroKenBurns {
-    0%   { background-size: cover; background-position: center 20%; }
-    100% { background-size: 115%; background-position: 40% 30%; }
+/* ── Progressive hero background images ── */
+.hero-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    z-index: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
 }
 
 /* ── Dark gradient overlay — depth + text readability ── */
@@ -338,7 +274,7 @@ html {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: 1;
     background:
         linear-gradient(180deg,
             rgba(0,0,0,0.55) 0%,
@@ -356,7 +292,7 @@ html {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: 1;
     background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.45) 100%);
     pointer-events: none;
 }
@@ -381,15 +317,7 @@ html {
     z-index: 3;
 }
 
-.hero-rect-inner.hero-bg-loaded {
-    /* Smooth crossfade when full image loads */
-    animation: heroBgFadeIn 0.6s ease both, heroKenBurns 25s 0.6s ease-in-out infinite alternate;
-}
 
-@keyframes heroBgFadeIn {
-    from { opacity: 0.92; }
-    to { opacity: 1; }
-}
 
 /* --- Left: Text --- */
 .hero-rect-left {
@@ -405,7 +333,6 @@ html {
     height: auto;
     color: #ffffff;
     opacity: 0.85;
-    animation: fadeIn 1.2s ease-out both;
 }
 
 /* Badge */
@@ -420,7 +347,6 @@ html {
     font-weight: 600;
     color: #ffffff;
     letter-spacing: 0.01em;
-    animation: fadeUp 0.8s ease-out both;
 }
 
 .hero-rect-title {
@@ -430,7 +356,6 @@ html {
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: #ffffff;
-    animation: fadeUp 1s 0.1s ease-out both;
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -459,7 +384,6 @@ html {
     gap: 1rem;
     flex-wrap: wrap;
     margin-top: 1.5rem;
-    animation: fadeUp 1s 0.3s ease-out both;
 }
 
 .btn-primary {
@@ -519,7 +443,6 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: imgFloat 1.2s 0.3s ease-out both;
 }
 
 .jharokha-frame {
@@ -601,39 +524,6 @@ html {
 /* ═════════════════════════════════════════════════
    ANIMATIONS
    ═════════════════════════════════════════════════ */
-@keyframes fadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(40px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes imgFloat {
-    from {
-        opacity: 0;
-        transform: translateX(30px) scale(0.96);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-}
 
 /* Scroll-triggered */
 .animate-on-scroll {
@@ -2926,9 +2816,7 @@ html {
         max-height: 35vh;
     }
 
-    .glass-strip {
-        width: 120px;
-    }
+
 }
 
 @media (max-width: 768px) {

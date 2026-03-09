@@ -26,13 +26,13 @@
     --saffron: #E8722A;
     --saffron-light: #F5A623;
     --amber: #F0A030;
-    --sacred-blue: #17402A;
-    --lavender: #d8e8d8;
+    --sacred-blue: #000000;
+    --lavender: #e0e0e0;
     --emerald: #10B981;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(180deg, #FAF8F5 0%, #edf5ed 40%, #d8e8d8 100%);
-    --gradient-saffron: linear-gradient(135deg, #F5A623 0%, #E8722A 50%, #2D5A2C 100%);
+    --gradient-hero: linear-gradient(180deg, #FAF8F5 0%, #f0f0f0 40%, #e0e0e0 100%);
+    --gradient-saffron: linear-gradient(135deg, #F5A623 0%, #E8722A 50%, #111111 100%);
 
     /* Spacing */
     --space-xs: 0.5rem;
@@ -113,7 +113,7 @@ html {
     font-weight: 700;
     font-size: 1.35rem;
     letter-spacing: -0.02em;
-    color: #17402A;
+    color: #000000;
 }
 
 .nav-links {
@@ -125,7 +125,7 @@ html {
 }
 
 .nav-links a {
-    color: #17402A;
+    color: #000000;
     text-decoration: none;
     font-size: 0.8rem;
     font-weight: 600;
@@ -135,7 +135,7 @@ html {
 }
 
 .nav-links a:hover {
-    color: #0f2a1a;
+    color: #222222;
 }
 
 /* ── About Dropdown ── */
@@ -194,19 +194,19 @@ html {
     font-weight: 500;
     text-transform: none;
     letter-spacing: 0;
-    color: #17402A;
+    color: #000000;
     transition: background 0.15s ease, color 0.15s ease;
 }
 
 .nav-dropdown li a:hover {
     background: var(--bg-secondary);
-    color: #0f2a1a;
+    color: #222222;
 }
 
 .nav-cta {
     padding: 8px 20px;
     border-radius: var(--radius-full);
-    background: #17402A;
+    background: #000000;
     color: #fff;
     font-weight: 600;
     font-size: 0.825rem;
@@ -218,7 +218,7 @@ html {
 .nav-cta:hover {
     opacity: 0.9;
     transform: translateY(-1px);
-    box-shadow: inset 0 0 16px rgba(255, 255, 255, 0.25), 0 4px 12px rgba(23, 64, 42, 0.3);
+    box-shadow: inset 0 0 16px rgba(255, 255, 255, 0.25), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* ═════════════════════════════════════════════════
@@ -226,17 +226,17 @@ html {
    ═════════════════════════════════════════════════ */
 .hero-rect {
     position: relative;
-    width: calc(100% - 48px);
-    height: calc(100vh - 48px);
-    margin: 24px;
-    background: var(--gradient-hero);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border);
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    background: #000;
+    border-radius: 0;
+    border: none;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.04);
+    box-shadow: none;
 }
 
 /* ═════════════════════════════════════════════════
@@ -318,9 +318,77 @@ html {
     gap: 60px;
     position: relative;
     z-index: 2;
-    background: #ffffff;
-    border-radius: var(--radius-xl);
-    transition: background-image 0.5s ease;
+    background-size: cover;
+    background-position: center 20%;
+    background-repeat: no-repeat;
+    background-color: #111;
+    border-radius: 0;
+    transition: background-image 0.6s ease;
+    animation: heroKenBurns 25s ease-in-out infinite alternate;
+}
+
+/* ── Ken Burns — slow cinematic zoom/pan ── */
+@keyframes heroKenBurns {
+    0%   { background-size: cover; background-position: center 20%; }
+    100% { background-size: 115%; background-position: 40% 30%; }
+}
+
+/* ── Dark gradient overlay — depth + text readability ── */
+.hero-rect-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+        linear-gradient(180deg,
+            rgba(0,0,0,0.55) 0%,
+            rgba(0,0,0,0.15) 40%,
+            rgba(0,0,0,0.10) 60%,
+            rgba(0,0,0,0.60) 100%),
+        linear-gradient(90deg,
+            rgba(0,0,0,0.50) 0%,
+            transparent 50%);
+    pointer-events: none;
+}
+
+/* ── Vignette — cinematic edge darkening ── */
+.hero-rect-inner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.45) 100%);
+    pointer-events: none;
+}
+
+/* ── Film grain texture overlay ── */
+.hero-grain {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0.06;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+    mix-blend-mode: overlay;
+}
+
+/* Ensure hero content sits above overlays */
+.hero-rect-left,
+.hero-rect-right {
+    position: relative;
+    z-index: 3;
+}
+
+.hero-rect-inner.hero-bg-loaded {
+    /* Smooth crossfade when full image loads */
+    animation: heroBgFadeIn 0.6s ease both, heroKenBurns 25s 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes heroBgFadeIn {
+    from { opacity: 0.92; }
+    to { opacity: 1; }
 }
 
 /* --- Left: Text --- */
@@ -457,7 +525,15 @@ html {
 .jharokha-frame {
     width: 480px;
     height: auto;
-    filter: drop-shadow(0 12px 48px rgba(23, 64, 42, 0.15));
+    filter: drop-shadow(0 8px 32px rgba(255, 255, 255, 0.25)) drop-shadow(0 4px 16px rgba(0, 0, 0, 0.08));
+}
+
+.hero-main-image {
+    width: min(520px, 44vw);
+    max-width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 12px 48px rgba(23, 64, 42, 0.18));
 }
 
 /* ── Jharokha text cycle ── */
@@ -466,7 +542,7 @@ html {
     font-family: 'Switzer', sans-serif;
     font-size: 26px;
     font-weight: 700;
-    fill: url(#jf_text_grad);
+    fill: url(#jf_text_dark);
     opacity: 0;
     letter-spacing: -0.01em;
     line-height: 1.3;
@@ -769,7 +845,7 @@ html {
     top: 6px;
     left: 6px;
     height: calc(100% - 12px);
-    background: #17402A;
+    background: #000000;
     border-radius: 999px;
     z-index: 1;
     transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1),
@@ -903,9 +979,9 @@ html {
 }
 
 .pill-tag:hover {
-    border-color: rgba(23, 64, 42, 0.3);
-    background: rgba(23, 64, 42, 0.05);
-    color: #17402A;
+    border-color: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.05);
+    color: #000000;
 }
 
 /* ═════════════════════════════════════════════════
@@ -1174,7 +1250,7 @@ html {
 .pm-hero-ornament {
     width: 180px;
     height: auto;
-    color: #17402A;
+    color: #000000;
     opacity: 0.8;
     position: relative;
     z-index: 2;
@@ -1199,7 +1275,7 @@ html {
     font-family: 'Switzer', sans-serif;
     font-weight: 700;
     font-size: clamp(18px, 3vw, 28px);
-    background: linear-gradient(135deg, #17402A 0%, #2D5A2C 50%, #17402A 100%);
+    background: linear-gradient(135deg, #000000 0%, #222222 50%, #000000 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1212,7 +1288,7 @@ html {
     font-family: 'Switzer', sans-serif;
     font-weight: 700;
     font-size: clamp(30px, 5.5vw, 50px);
-    background: linear-gradient(180deg, #17402A 0%, #2D5A2C 100%);
+    background: linear-gradient(180deg, #000000 0%, #222222 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1621,7 +1697,7 @@ html {
 }
 
 .gd-cursor-label-green { background: #22C55E; }
-.gd-cursor-label-blue  { background: #17402A; }
+.gd-cursor-label-blue  { background: #000000; }
 .gd-cursor-label-red   { background: #EF4444; }
 
 /* Cursor positions + floating animations */
@@ -2087,13 +2163,13 @@ html {
 }
 
 .testimonial-footer .btn-ghost {
-    color: #17402A;
-    border-color: rgba(23, 64, 42, 0.4);
+    color: #000000;
+    border-color: rgba(0, 0, 0, 0.4);
 }
 
 .testimonial-footer .btn-ghost:hover {
-    border-color: #17402A;
-    background: rgba(23, 64, 42, 0.06);
+    border-color: #000000;
+    background: rgba(0, 0, 0, 0.06);
 }
 
 .testimonial-author {
@@ -2239,12 +2315,17 @@ html {
 }
 
 .cta-connect-btn {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    background: #000000 !important;
+    border-color: rgba(255, 255, 255, 0.25);
+    padding: 8px 20px !important;
+    font-size: 0.82rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .cta-connect-btn:hover {
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+    background: #222222 !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
     transform: translateY(-2px);
 }
 
@@ -2771,11 +2852,20 @@ html {
    ═════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
     .hero-rect-inner {
-        padding: 80px 60px;
+        padding: 80px 48px;
+        gap: 40px;
     }
 
     .jharokha-frame {
-        max-width: 400px;
+        max-width: 360px;
+    }
+
+    .hero-ornament-svg {
+        width: 180px;
+    }
+
+    .hero-rect-accent {
+        white-space: normal;
     }
 
     .service-row {
@@ -2789,17 +2879,18 @@ html {
 
 @media (max-width: 900px) {
     .hero-rect {
-        width: calc(100% - 24px);
-        height: calc(100vh - 24px);
-        margin: 12px;
-        border-radius: var(--radius-lg);
+        width: 100%;
+        height: 100vh;
+        min-height: 600px;
+        margin: 0;
+        border-radius: 0;
     }
 
     .hero-rect-inner {
         flex-direction: column;
-        padding: 120px 32px 48px;
+        padding: 100px 32px 40px;
         justify-content: center;
-        gap: 48px;
+        gap: 32px;
         text-align: center;
     }
 
@@ -2807,8 +2898,23 @@ html {
         align-items: center;
     }
 
+    .hero-ornament-svg {
+        width: 160px;
+    }
+
+    .hero-rect-title {
+        font-size: clamp(2.6rem, 5.5vw, 4rem);
+    }
+
+    .hero-rect-accent {
+        white-space: normal;
+        font-size: clamp(1.4rem, 2.8vw, 2rem);
+    }
+
     .badge {
         align-self: center;
+        font-size: 0.82rem;
+        padding: 8px 20px;
     }
 
     .hero-actions {
@@ -2816,8 +2922,8 @@ html {
     }
 
     .jharokha-frame {
-        max-width: 300px;
-        max-height: 40vh;
+        max-width: 280px;
+        max-height: 35vh;
     }
 
     .glass-strip {
@@ -2851,7 +2957,26 @@ html {
     }
 
     .hero-rect-inner {
-        padding: 100px 24px 40px;
+        padding: 90px 20px 36px;
+        gap: 24px;
+    }
+
+    .hero-rect-title {
+        font-size: clamp(2.2rem, 5vw, 3.2rem);
+    }
+
+    .hero-rect-accent {
+        white-space: normal;
+        font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    }
+
+    .hero-ornament-svg {
+        width: 140px;
+    }
+
+    .jharokha-frame {
+        max-width: 240px;
+        max-height: 30vh;
     }
 
     .service-row,
@@ -2908,23 +3033,50 @@ html {
 
 @media (max-width: 480px) {
     .hero-rect {
-        width: calc(100% - 16px);
-        height: calc(100vh - 16px);
-        margin: 8px;
-        border-radius: var(--radius-md);
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 540px;
+        margin: 0;
+        border-radius: 0;
     }
 
     .hero-rect-title {
-        font-size: 2.2rem;
+        font-size: clamp(1.8rem, 8vw, 2.4rem);
+    }
+
+    .hero-rect-accent {
+        white-space: normal;
+        font-size: clamp(1rem, 4.5vw, 1.4rem);
+    }
+
+    .hero-ornament-svg {
+        width: 120px;
     }
 
     .jharokha-frame {
-        max-width: 220px;
+        max-width: 180px;
+        max-height: 25vh;
     }
 
     .hero-rect-inner {
-        padding: 90px 16px 24px;
-        gap: 32px;
+        padding: 80px 16px 20px;
+        gap: 20px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 6px 16px;
+    }
+
+    .hero-actions {
+        gap: 0.75rem;
+    }
+
+    .btn-primary,
+    .btn-ghost {
+        padding: 8px 18px;
+        font-size: 0.8rem;
     }
 
     .footer-top {
@@ -3014,5 +3166,5 @@ html {
     width: 60px;
     height: 4px;
     border-radius: 2px;
-    background: #17402A;
+    background: #000000;
 }

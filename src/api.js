@@ -1,4 +1,5 @@
-const API_BASE = '/api';
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isLocal ? 'http://localhost:5001/api' : '/api';
 
 async function request(url, options = {}) {
   const res = await fetch(`${API_BASE}${url}`, {

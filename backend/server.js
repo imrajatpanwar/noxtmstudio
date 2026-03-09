@@ -752,6 +752,100 @@ app.post('/api/upload/blog-image', visitorAuth, upload.single('file'), (req, res
 // ─── Health check ────────────────────────────
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
+// ─── Dynamic Sitemap.xml ─────────────────────
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const SITE = 'https://noxtmstudio.com';
+    const today = new Date().toISOString().split('T')[0];
+
+    // Static pages
+    const staticPages = [
+      { loc: '/',             changefreq: 'weekly',  priority: '1.0' },
+      { loc: '/blog',         changefreq: 'daily',   priority: '0.9' },
+      { loc: '/case-studies',  changefreq: 'weekly',  priority: '0.8' },
+      { loc: '/work',          changefreq: 'weekly',  priority: '0.8' },
+      { loc: '/company',       changefreq: 'monthly', priority: '0.7' },
+      { loc: '/contact',       changefreq: 'monthly', priority: '0.7' },
+    ];
+
+    // Dynamic pages from DB
+    const [blogs, caseStudies, works, visitorBlogs] = await Promise.all([
+      Blog.find({ status: 'Published' }).select('slug updatedAt').lean(),
+      CaseStudy.find({ status: 'Published' }).select('slug updatedAt').lean(),
+      Work.find({ status: 'Published' }).select('slug updatedAt').lean(),
+      VisitorBlog.find({ status: 'approved' }).select('_id updatedAt').lean(),
+    ]);
+
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    // Static pages
+    for (const page of staticPages) {
+      xml += '  <url>\n';
+      xml += `    <loc>${SITE}${page.loc}</loc>\n`;
+      xml += `    <lastmod>${today}</lastmod>\n`;
+      xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
+      xml += `    <priority>${page.priority}</priority>\n`;
+      xml += '  </url>\n';
+    }
+
+    // Blog posts
+    for (const blog of blogs) {
+      if (!blog.slug) continue;
+      const lastmod = blog.updatedAt ? new Date(blog.updatedAt).toISOString().split('T')[0] : today;
+      xml += '  <url>\n';
+      xml += `    <loc>${SITE}/blog/${encodeURIComponent(blog.slug)}</loc>\n`;
+      xml += `    <lastmod>${lastmod}</lastmod>\n`;
+      xml += '    <changefreq>weekly</changefreq>\n';
+      xml += '    <priority>0.8</priority>\n';
+      xml += '  </url>\n';
+    }
+
+    // Visitor blogs (approved)
+    for (const vb of visitorBlogs) {
+      const lastmod = vb.updatedAt ? new Date(vb.updatedAt).toISOString().split('T')[0] : today;
+      xml += '  <url>\n';
+      xml += `    <loc>${SITE}/blog/visitor-${vb._id}</loc>\n`;
+      xml += `    <lastmod>${lastmod}</lastmod>\n`;
+      xml += '    <changefreq>weekly</changefreq>\n';
+      xml += '    <priority>0.7</priority>\n';
+      xml += '  </url>\n';
+    }
+
+    // Case studies
+    for (const cs of caseStudies) {
+      if (!cs.slug) continue;
+      const lastmod = cs.updatedAt ? new Date(cs.updatedAt).toISOString().split('T')[0] : today;
+      xml += '  <url>\n';
+      xml += `    <loc>${SITE}/case-studies/${encodeURIComponent(cs.slug)}</loc>\n`;
+      xml += `    <lastmod>${lastmod}</lastmod>\n`;
+      xml += '    <changefreq>monthly</changefreq>\n';
+      xml += '    <priority>0.7</priority>\n';
+      xml += '  </url>\n';
+    }
+
+    // Works
+    for (const w of works) {
+      if (!w.slug) continue;
+      const lastmod = w.updatedAt ? new Date(w.updatedAt).toISOString().split('T')[0] : today;
+      xml += '  <url>\n';
+      xml += `    <loc>${SITE}/work/${encodeURIComponent(w.slug)}</loc>\n`;
+      xml += `    <lastmod>${lastmod}</lastmod>\n`;
+      xml += '    <changefreq>monthly</changefreq>\n';
+      xml += '    <priority>0.7</priority>\n';
+      xml += '  </url>\n';
+    }
+
+    xml += '</urlset>';
+
+    res.set('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    console.error('Sitemap generation error:', err);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
 // ─── Serve React build in production ─────────
 const buildPath = path.join(__dirname, '..', 'build');
 if (fs.existsSync(buildPath)) {

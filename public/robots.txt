@@ -1,3 +1,9 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Block admin and visitor dashboard from indexing
+Disallow: /admin
+Disallow: /visitor
+
+Sitemap: https://noxtmstudio.com/sitemap.xml

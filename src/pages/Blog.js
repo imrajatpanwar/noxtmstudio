@@ -98,6 +98,8 @@ function Blog() {
     const [newsletterEmail, setNewsletterEmail] = useState('');
     const [newsletterMsg, setNewsletterMsg] = useState('');
     const [allPosts, setAllPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [visitorUser, setVisitorUser] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -130,12 +132,14 @@ function Blog() {
     /* Load blogs from API and merge with approved visitor blogs */
     useEffect(() => {
         const fetchBlogs = async () => {
+            setLoading(true);
+            setError('');
             try {
                 const [blogs, visitorBlogs] = await Promise.all([
                     api.getBlogs(),
                     api.getVisitorBlogs({ status: 'approved' }).catch(() => []),
                 ]);
-                const published = blogs.filter(b => b.status === 'Published');
+                const published = (Array.isArray(blogs) ? blogs : []).filter(b => b.status === 'Published');
                 const approved = (Array.isArray(visitorBlogs) ? visitorBlogs : []).map(blog => ({
                     _id: `visitor-${blog._id}`,
                     author: blog.visitorName,
@@ -160,6 +164,9 @@ function Blog() {
                 setAllPosts([...published, ...approved]);
             } catch (err) {
                 console.error('Failed to fetch blogs:', err);
+                setError('Unable to load blogs. Please make sure the server is running and try again.');
+            } finally {
+                setLoading(false);
             }
         };
         fetchBlogs();
@@ -315,9 +322,45 @@ function Blog() {
 
                         {/* Blog Cards */}
                         <div className="blog-feed">
-                            {filteredPosts.map(post => (
-                                <BlogCard key={post._id} post={post} />
-                            ))}
+                            {loading ? (
+                                <div className="blog-empty-state">
+                                    <div className="blog-loading-spinner"></div>
+                                    <p className="blog-empty-text">Loading blogs...</p>
+                                </div>
+                            ) : error ? (
+                                <div className="blog-empty-state">
+                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style={{ marginBottom: 16, opacity: 0.4 }}>
+                                        <circle cx="24" cy="24" r="22" stroke="currentColor" strokeWidth="2"/>
+                                        <path d="M16 16l16 16M32 16L16 32" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                    <p className="blog-empty-text">{error}</p>
+                                    <button className="blog-retry-btn" onClick={() => window.location.reload()}>Retry</button>
+                                </div>
+                            ) : filteredPosts.length === 0 ? (
+                                <div className="blog-empty-state">
+                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style={{ marginBottom: 16, opacity: 0.4 }}>
+                                        <rect x="6" y="4" width="36" height="40" rx="4" stroke="currentColor" strokeWidth="2"/>
+                                        <line x1="14" y1="16" x2="34" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                        <line x1="14" y1="24" x2="28" y2="24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                        <line x1="14" y1="32" x2="22" y2="32" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                    <h3 className="blog-empty-title">
+                                        {activeTab === 'trending' ? 'No trending posts yet' : 'No blog posts yet'}
+                                    </h3>
+                                    <p className="blog-empty-text">
+                                        {activeTab === 'trending'
+                                            ? 'Check back later for trending content or browse all posts.'
+                                            : 'Be the first to share your thoughts with the community!'}
+                                    </p>
+                                    {activeTab === 'trending' && (
+                                        <button className="blog-retry-btn" onClick={() => setActiveTab('foryou')}>Browse all posts</button>
+                                    )}
+                                </div>
+                            ) : (
+                                filteredPosts.map(post => (
+                                    <BlogCard key={post._id} post={post} />
+                                ))
+                            )}
                         </div>
                     </div>
 

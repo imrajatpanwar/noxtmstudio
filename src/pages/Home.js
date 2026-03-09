@@ -15,11 +15,9 @@ import MetaLogo from './image/MetaLogo.svg';
 import GoogleAds from './image/GoogleAds.svg';
 import FootersBg from './image/footers_file.webp';
 
-/* ── Hero day/night images ── */
-import DayWebp from './image/main_images/day_image.webp';
-import NightWebp from './image/main_images/night_image.webp';
-import DayPng from './image/main_images/day_image_noxtm_studio.png';
-import NightPng from './image/main_images/night_image_noxtm_studio.png';
+/* Hero background images — fast webp placeholder + full-quality PNG */
+const HeroBgWebp = process.env.PUBLIC_URL + '/images/noxtm_studio.webp';
+const HeroBgFull = process.env.PUBLIC_URL + '/images/noxtmstudio_jpg_file.png';
 
 /* ── Circle folder assets (served from public/) ── */
 const ArchOuter = process.env.PUBLIC_URL + '/images/circle/Arch-Outer.svg';
@@ -32,23 +30,6 @@ const BadgeViews = process.env.PUBLIC_URL + '/images/circle/Badge-PostViews.svg'
 const BadgeGrowth = process.env.PUBLIC_URL + '/images/circle/Badge-FocusGrowth.svg';
 const Text1M = process.env.PUBLIC_URL + '/images/circle/Text-1M.svg';
 const TextFollowers = process.env.PUBLIC_URL + '/images/circle/Text-Followers.svg';
-
-/* ── useHeroBg: show fast webp first, swap to hi-res PNG when loaded ── */
-function useHeroBg() {
-    const hour = new Date().getHours();
-    const isDay = hour >= 6 && hour < 18;
-    const webp = isDay ? DayWebp : NightWebp;
-    const png = isDay ? DayPng : NightPng;
-    const [bg, setBg] = useState(webp);
-
-    useEffect(() => {
-        const img = new Image();
-        img.src = png;
-        img.onload = () => setBg(png);
-    }, [png]);
-
-    return bg;
-}
 
 /* ── Data ────────────────────────────────────────────────────── */
 
@@ -876,63 +857,50 @@ function SocialMediaIllustration() {
 
 /* ── Jharokha Frame SVG (from jharokha-frame.svg — exact match) ─────── */
 function JharokhaFrame() {
-    const outerFill = 'white';
-    const outerShadow = '0 0 0 0 0.364706 0 0 0 0 0.658824 0 0 0 0 0.478431 0 0 0 0.66 0';
-    const innerShadow = '0 0 0 0 0.364706 0 0 0 0 0.658824 0 0 0 0 0.478431 0 0 0 0.74 0';
     return (
         <svg className="jharokha-frame" viewBox="0 0 378 378" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
-                {/* Radial gradient: all-white (matches SVG exactly) */}
-                <radialGradient id="jf_inner_grad" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox">
-                    <stop offset="0%" stopColor="white" />
-                    <stop offset="55%" stopColor="white" />
-                    <stop offset="100%" stopColor="white" />
+                {/* Glassy white gradient for outer shape */}
+                <radialGradient id="jf_glass_outer" cx="50%" cy="40%" r="55%" gradientUnits="objectBoundingBox">
+                    <stop offset="0%" stopColor="white" stopOpacity="0.55" />
+                    <stop offset="60%" stopColor="white" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="white" stopOpacity="0.15" />
                 </radialGradient>
 
-                {/* Text gradient: dark green → vibrant green */}
-                <linearGradient id="jf_text_grad" x1="100" y1="170" x2="280" y2="200" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#173116" />
-                    <stop offset="1" stopColor="#4E9C4B" />
+                {/* Glassy white gradient for inner shape */}
+                <radialGradient id="jf_glass_inner" cx="50%" cy="45%" r="50%" gradientUnits="objectBoundingBox">
+                    <stop offset="0%" stopColor="white" stopOpacity="0.45" />
+                    <stop offset="50%" stopColor="white" stopOpacity="0.22" />
+                    <stop offset="100%" stopColor="white" stopOpacity="0.1" />
+                </radialGradient>
+
+                {/* Black-gray gradient for text */}
+                <linearGradient id="jf_text_dark" x1="100" y1="165" x2="280" y2="210" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#000000" />
+                    <stop offset="50%" stopColor="#3a3a3a" />
+                    <stop offset="100%" stopColor="#000000" />
                 </linearGradient>
 
-                <filter id="jf_outer" x="0" y="0" width="377.493" height="377.403" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-                    <feFlood floodOpacity="0" result="BackgroundImageFix" />
-                    <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
-                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                    <feOffset />
-                    <feGaussianBlur stdDeviation="22.3898" />
-                    <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
-                    <feColorMatrix type="matrix" values={outerShadow} />
-                    <feBlend mode="normal" in2="shape" result="effect1_innerShadow" />
-                </filter>
-                <filter id="jf_inner" x="39.9438" y="39.9435" width="297.868" height="297.797" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-                    <feFlood floodOpacity="0" result="BackgroundImageFix" />
-                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                    <feOffset />
-                    <feComposite in2="hardAlpha" operator="out" />
-                    <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.96 0" />
-                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                    <feOffset />
-                    <feGaussianBlur stdDeviation="17.6671" />
-                    <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
-                    <feColorMatrix type="matrix" values={innerShadow} />
-                    <feBlend mode="normal" in2="shape" result="effect2_innerShadow" />
+                {/* Soft white glow filter */}
+                <filter id="jf_glow" x="-15%" y="-15%" width="130%" height="130%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+                    <feColorMatrix in="blur" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.4 0" result="glow" />
+                    <feMerge>
+                        <feMergeNode in="glow" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
                 </filter>
             </defs>
 
-            {/* Outer shape — with soft inner shadow */}
-            <g filter="url(#jf_outer)">
-                <path d="M123.86 26.2409C164.789 27.1365 175.268 17.5536 188.612 0C201.24 18.1805 217.719 27.0469 241.989 26.2409C287.712 24.7224 299.397 52.7504 301.277 77.2001C345.878 77.2001 352.058 110.337 352.058 126.726C349.908 159.953 359.76 175.536 377.492 187.448C349.371 206.345 352.345 232.765 351.968 247.721C350.804 293.934 316.771 298.053 301.098 299.934C301.098 336.295 275.664 349.64 244.945 349.64C205.718 347.221 194.254 368.208 188.164 377.403C181.178 361.103 160.311 348.148 138.548 349.46C93.4104 352.181 77.2897 327.518 76.3045 299.218C37.1134 298.644 25.5244 271.812 25.5244 248.438C25.5244 208.315 16.5685 201.508 0 187.448C27.9425 166.491 23.2854 152.967 25.5244 121.622C27.5498 93.2658 48.8994 75.4089 77.4688 77.7375C76.4836 45.4961 95.1118 27.4051 123.86 26.2409Z" fill={outerFill} />
+            {/* Outer shape — frosted glass */}
+            <g filter="url(#jf_glow)">
+                <path d="M123.86 26.2409C164.789 27.1365 175.268 17.5536 188.612 0C201.24 18.1805 217.719 27.0469 241.989 26.2409C287.712 24.7224 299.397 52.7504 301.277 77.2001C345.878 77.2001 352.058 110.337 352.058 126.726C349.908 159.953 359.76 175.536 377.492 187.448C349.371 206.345 352.345 232.765 351.968 247.721C350.804 293.934 316.771 298.053 301.098 299.934C301.098 336.295 275.664 349.64 244.945 349.64C205.718 347.221 194.254 368.208 188.164 377.403C181.178 361.103 160.311 348.148 138.548 349.46C93.4104 352.181 77.2897 327.518 76.3045 299.218C37.1134 298.644 25.5244 271.812 25.5244 248.438C25.5244 208.315 16.5685 201.508 0 187.448C27.9425 166.491 23.2854 152.967 25.5244 121.622C27.5498 93.2658 48.8994 75.4089 77.4688 77.7375C76.4836 45.4961 95.1118 27.4051 123.86 26.2409Z" fill="url(#jf_glass_outer)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2" />
             </g>
 
-            {/* Inner shape — radial gradient */}
-            <g filter="url(#jf_inner)">
-                <path d="M137.678 60.6494C169.974 61.3561 178.242 53.7946 188.772 39.9435C198.736 54.2892 211.739 61.2854 230.89 60.6494C266.969 59.4512 276.189 81.5673 277.673 100.86C312.866 100.86 317.742 127.007 317.742 139.939C316.046 166.157 323.819 178.454 337.812 187.853C315.622 202.764 317.968 223.611 317.671 235.413C316.752 271.878 289.898 275.128 277.531 276.612C277.531 305.304 257.461 315.833 233.222 315.833C202.269 313.925 193.224 330.485 188.418 337.741C182.906 324.879 166.44 314.657 149.268 315.692C113.651 317.839 100.931 298.378 100.153 276.047C69.2289 275.595 60.0844 254.422 60.0844 235.978C60.0844 204.318 53.0175 198.948 39.9438 187.853C61.9924 171.316 58.3177 160.645 60.0844 135.911C61.6826 113.537 78.5289 99.4464 101.072 101.284C100.295 75.8431 114.994 61.5681 137.678 60.6494Z" fill="url(#jf_inner_grad)" />
-            </g>
+            {/* Inner shape — deeper glass */}
+            <path d="M137.678 60.6494C169.974 61.3561 178.242 53.7946 188.772 39.9435C198.736 54.2892 211.739 61.2854 230.89 60.6494C266.969 59.4512 276.189 81.5673 277.673 100.86C312.866 100.86 317.742 127.007 317.742 139.939C316.046 166.157 323.819 178.454 337.812 187.853C315.622 202.764 317.968 223.611 317.671 235.413C316.752 271.878 289.898 275.128 277.531 276.612C277.531 305.304 257.461 315.833 233.222 315.833C202.269 313.925 193.224 330.485 188.418 337.741C182.906 324.879 166.44 314.657 149.268 315.692C113.651 317.839 100.931 298.378 100.153 276.047C69.2289 275.595 60.0844 254.422 60.0844 235.978C60.0844 204.318 53.0175 198.948 39.9438 187.853C61.9924 171.316 58.3177 160.645 60.0844 135.911C61.6826 113.537 78.5289 99.4464 101.072 101.284C100.295 75.8431 114.994 61.5681 137.678 60.6494Z" fill="url(#jf_glass_inner)" stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" />
 
-            {/* Animated text labels in center */}
+            {/* Animated text labels in center — white */}
             <g className="jf-text-group">
                 <text x="189" y="178" className="jf-text jf-text-1" textAnchor="middle" dominantBaseline="middle">Social Media</text>
                 <text x="189" y="200" className="jf-text jf-text-1b" textAnchor="middle" dominantBaseline="middle">Management</text>
@@ -989,12 +957,17 @@ function setLinkTag(rel, href) {
 }
 
 export default function Home() {
-    /* Hero background: day/night with progressive loading */
-    const heroBg = useHeroBg();
-
     /* Service toggle state */
     const [activeService, setActiveService] = useState(0);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    /* Progressive hero image: show webp instantly, swap to full PNG when loaded */
+    const [heroLoaded, setHeroLoaded] = useState(false);
+    useEffect(() => {
+        const img = new Image();
+        img.onload = () => setHeroLoaded(true);
+        img.src = HeroBgFull;
+    }, []);
 
     /* Trust logos from admin (API) */
     const [trustLogos, setTrustLogos] = useState([]);
@@ -1033,11 +1006,11 @@ export default function Home() {
                     api.getBlogs(),
                     api.getVisitorBlogs({ status: 'approved' }).catch(() => []),
                 ]);
-                const published = adminData.filter(b => b.status === 'Published').map(b => ({
+                const published = (Array.isArray(adminData) ? adminData : []).filter(b => b.status === 'Published').map(b => ({
                     ...b,
                     slug: b.slug,
                     isVisitor: false,
-                }));
+}));
                 const approved = (Array.isArray(visitorData) ? visitorData : []).map(b => ({
                     ...b,
                     slug: `visitor-${b._id}`,
@@ -1138,13 +1111,15 @@ export default function Home() {
                 <a href="/contact" className="mobile-menu-cta" onClick={() => setMobileMenuOpen(false)}>Contact</a>
             </div>
 
-            {/* ═══ Full-Screen Hero Rectangle ═══ */}
+            {/* ═══ Full-Width Hero ═══ */}
             <section className="hero-rect">
-                {/* Glass strips */}
-                <div className="glass-strip"></div>
-                <div className="glass-strip-2"></div>
+                <div
+                    className={`hero-rect-inner${heroLoaded ? ' hero-bg-loaded' : ''}`}
+                    style={{ backgroundImage: `url(${heroLoaded ? HeroBgFull : HeroBgWebp})` }}
+                >
+                    {/* Film grain overlay */}
+                    <div className="hero-grain" aria-hidden="true" />
 
-                <div className="hero-rect-inner" style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
                     {/* Left: Text */}
                     <div className="hero-rect-left">
                         {/* Decorative flourish ornament from ddsign!.svg */}
@@ -1243,7 +1218,7 @@ export default function Home() {
                     const service = SERVICES[activeService];
                     const gradientMap = {
                         'gradient-saffron': 'linear-gradient(135deg, #E8804A 0%, #D4622B 50%, #C4532A 100%)',
-                        'gradient-blue': 'linear-gradient(135deg, #2D5A2C 0%, #17402A 50%, #244A23 100%)',
+                        'gradient-blue': 'linear-gradient(135deg, #222222 0%, #000000 50%, #111111 100%)',
                         'gradient-emerald': 'linear-gradient(135deg, #34A572 0%, #2A8C5E 50%, #1E7A4F 100%)',
                     };
 
@@ -1438,20 +1413,26 @@ export default function Home() {
 
             {/* ═══ Work / Case Studies Section ═══ */}
             <section className="work-section" id="work">
-                {/* Blog strip — only shown when published blogs exist */}
-                {adminBlogs.length > 0 && (
+                {/* Blog strip */}
                 <div className="blog-strip animate-on-scroll">
-                    {adminBlogs.map((item, i) => (
+                    {adminBlogs.length > 0 ? adminBlogs.map((item, i) => (
                         <a href={`/blog/${item.slug}`} className="blog-chip" key={i}>
-                            <span className="blog-chip-thumb" style={{ background: item.featureImage ? `url(${item.featureImage}) center/cover no-repeat` : '#17402A' }} />
+                            <span className="blog-chip-thumb" style={{ background: item.featureImage ? `url(${item.featureImage}) center/cover no-repeat` : '#000000' }} />
                             <div className="blog-chip-text">
                                 <span className="blog-chip-title">{item.title}</span>
                                 <span className="blog-chip-source">{item.isVisitor ? 'Community' : (item.category || 'From our blog')}</span>
                             </div>
                         </a>
-                    ))}
+                    )) : (
+                        <a href="/blog" className="blog-chip">
+                            <span className="blog-chip-thumb" style={{ background: 'linear-gradient(135deg, #E8722A, #F5A623)' }} />
+                            <div className="blog-chip-text">
+                                <span className="blog-chip-title">Explore Our Blog</span>
+                                <span className="blog-chip-source">Insights & strategies</span>
+                            </div>
+                        </a>
+                    )}
                 </div>
-                )}
 
                 {/* Case study cards */}
                 <div className="case-study-wrapper animate-on-scroll">
@@ -1500,21 +1481,20 @@ export default function Home() {
             </section>
 
             {/* ═══ Blog / Updates ═══ */}
-            {adminBlogs.length > 0 && (
             <section className="updates-section animate-on-scroll">
                 <div className="section-header">
                     <p className="section-label">अपडेट · UPDATES</p>
                     <h2 className="section-title">Research & Insights</h2>
                 </div>
                 <div className="updates-grid">
-                    {adminBlogs.map((b) => (
-                        <a href={`/blog/${b.slug}`} className="update-card" key={b.id} style={{ textDecoration: 'none' }}>
+                    {adminBlogs.length > 0 ? adminBlogs.map((b) => (
+                        <a href={`/blog/${b.slug}`} className="update-card" key={b._id || b.id} style={{ textDecoration: 'none' }}>
                             <div
                                 className="update-card-image"
                                 style={{
                                     background: b.featureImage
                                         ? `url(${b.featureImage}) center/cover no-repeat`
-                                        : 'linear-gradient(135deg, #17402A 0%, #2D5A2C 100%)'
+                                        : 'linear-gradient(135deg, #000000 0%, #222222 100%)'
                                 }}
                             />
                             <div className="update-card-body">
@@ -1523,10 +1503,18 @@ export default function Home() {
                                 <span className="update-date">{b.publishDate || b.createdAt || ''}</span>
                             </div>
                         </a>
-                    ))}
+                    )) : (
+                        <a href="/blog" className="update-card" style={{ textDecoration: 'none' }}>
+                            <div className="update-card-image" style={{ background: 'linear-gradient(135deg, #131313 0%, #3D3D3D 100%)' }} />
+                            <div className="update-card-body">
+                                <span className="update-category">BLOG</span>
+                                <h3 className="update-title">Visit our blog for the latest insights on digital marketing and social media</h3>
+                                <span className="update-date">Explore now →</span>
+                            </div>
+                        </a>
+                    )}
                 </div>
             </section>
-            )}
 
             {/* ═══ Final CTA + Grass Scene (merged) ═══ */}
             <section className="cta-section animate-on-scroll animate-in" id="contact">
@@ -1540,7 +1528,7 @@ export default function Home() {
                 <img src={FootersBg} className="cta-footer-img" alt="" />
                 {/* Button floats ABOVE the footer image */}
                 <div className="cta-btn-row">
-                    <a href="/contact" className="btn-primary btn-large cta-connect-btn">Let’s Connect ✦</a>
+                    <a href="/contact" className="btn-primary btn-sm cta-connect-btn">Let’s Connect ✦</a>
                 </div>
                 <div className="cta-grass-wrapper">
                     <GrassScene />

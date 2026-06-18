@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ink text-white font-sans antialiased;
+  }
+}
+
+@keyframes noxtmScrollLeft {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full px-5 sm:px-8;
+    max-width: 80rem;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition;
+  }
+  .btn-primary {
+    @apply btn bg-[#3A5E48] text-[#F5F2ED] hover:bg-[#22372B];
+  }
+  .btn-ghost {
+    @apply btn border border-line text-white hover:border-accent hover:text-accent;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-accent;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-panel p-6;
+  }
+  .field {
+    @apply w-full rounded-lg border border-line bg-ink px-4 py-3 text-sm text-white placeholder:text-muted focus:border-accent focus:outline-none;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium text-muted;
+  }
+}
+
+/* City cards — zoomed-out image with smooth hover scale */
+.city-img {
+  transform: scale(0.88);
+  transform-origin: center bottom;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .city-img {
+  transform: scale(0.95);
+}
+
+/* Full-width city cutouts — pinned to the bottom, gentle zoom on hover */
+.city-img-full {
+  transform: scale(1);
+  transform-origin: center bottom;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .city-img-full {
+  transform: scale(1.06);
+}
+
+/* ─── Admin light-theme scope ─── */
+.admin-light {
+  @apply bg-[#F5F2ED] text-[#1A1A18];
+}
+.admin-light .card {
+  @apply bg-white border-black/10 text-[#1A1A18];
+}
+.admin-light .field {
+  @apply bg-[#F5F2ED] border-black/10 text-[#1A1A18] placeholder:text-black/35;
+}
+.admin-light .field:focus {
+  @apply border-[#3A5E48];
+}
+.admin-light .btn-ghost {
+  @apply border-black/10 text-[#1A1A18] hover:border-[#3A5E48] hover:text-[#3A5E48];
+}
+.admin-light .label {
+  @apply text-black/50;
+}
+.admin-light .text-muted,
+.admin-light p.text-muted {
+  color: rgba(26, 26, 24, 0.5);
+}
+.admin-light .text-accent {
+  color: #3A5E48;
+}
+.admin-light .text-red-300 {
+  color: #dc2626;
+}
+.admin-light .text-green-400,
+.admin-light .text-green-300 {
+  color: #16a34a;
+}
+
+/* Respect user motion preferences (WCAG) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
